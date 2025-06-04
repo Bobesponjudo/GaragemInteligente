@@ -10,7 +10,7 @@
  */
 async function fetchWeatherData(cidade = "Campinas") {
     // Chama a rota /clima SEM o parâmetro 'tipo', para obter o clima atual
-    const backendUrl = `/clima?cidade=${encodeURIComponent(cidade)}`;
+    const backendUrl = `http://localhost:3000/clima?cidade=${encodeURIComponent(cidade)}`;
 
     console.log(`[WeatherService] Chamando backend para CLIMA ATUAL: ${backendUrl}`);
 
@@ -34,6 +34,7 @@ async function fetchWeatherData(cidade = "Campinas") {
         return data;
 
     } catch (error) {
+        console.log(error);
         console.error("[WeatherService] Erro na requisição fetch para o backend (/clima - atual):", error);
         const weatherDiv = document.getElementById('weather-info');
         if (weatherDiv) {
@@ -54,7 +55,7 @@ async function fetchWeatherData(cidade = "Campinas") {
  */
 async function fetchForecastData(cidade = "Campinas", numDays = 3) {
     // Chama a rota /clima COM o parâmetro 'tipo=forecast', para obter a previsão
-    const backendUrl = `/clima?cidade=${encodeURIComponent(cidade)}&tipo=forecast`;
+    const backendUrl = `http://localhost:3000/clima?cidade=${encodeURIComponent(cidade)}&tipo=forecast`;
 
     console.log(`[WeatherService] Chamando backend para PREVISÃO: ${backendUrl}`);
 
