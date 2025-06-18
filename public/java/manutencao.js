@@ -1,4 +1,4 @@
- class Manutencao {
+class Manutencao {
     /**
      * Cria uma instância de Manutencao.
      * @param {string} data - Data da manutenção (formato "YYYY-MM-DD").
@@ -36,14 +36,12 @@
 
             // Checagem primária de validade do objeto Date
             if (isNaN(dt.getTime())) {
-                // console.warn(`Data/hora resultou em Date inválido: ${dateString}`);
                 return null;
             }
 
             // Validação extra de consistência (evita 31/02 virar 03/03, etc.)
             const [year, month, day] = this.data.split('-').map(Number);
             if (dt.getFullYear() !== year || dt.getMonth() + 1 !== month || dt.getDate() !== day) {
-                // console.warn(`Inconsistência lógica na data: ${this.data}`);
                 return null;
             }
 
@@ -51,7 +49,6 @@
             if (this.hora) {
                 const [hour, minute] = this.hora.split(':').map(Number);
                 if (dt.getHours() !== hour || dt.getMinutes() !== minute) {
-                    // console.warn(`Inconsistência lógica na hora: ${this.hora}`);
                     return null;
                 }
             }
@@ -63,13 +60,6 @@
     }
 
     /**
-     * Retorna uma string formatada do registro de manutenção para exibição.
-     * @returns {string} Informação formatada.
-     */ /**
-    * Retorna um objeto Date representando a data e hora da manutenção.
-    * Retorna null se a data ou hora forem inválidas ou logicamente inconsistentes.
-    * @returns {Date | null} Objeto Date ou null se inválido.
-    */  /**
     * Retorna uma string formatada do registro de manutenção para exibição.
     * @returns {string} Informação formatada.
     */
@@ -96,15 +86,9 @@
         }
         return info;
     }
-    /**
-        * Valida os dados da manutenção (formato, obrigatoriedade, regras de negócio).
-        * Verifica data/hora válidas, tipo obrigatório, custo não negativo para concluída,
-        * e data futura para agendamento.
-        * @returns {string[]} Array de mensagens de erro. Vazio se válido.
-        */
+
     /**
      * Valida os dados da manutenção.
-     * Verifica formato, obrigatoriedade e regras de negócio (data futura, custo >= 0).
      * @returns {string[]} Array de mensagens de erro. Vazio se válido.
      */
     validar() {
@@ -112,14 +96,11 @@
         const dataValida = this.getDateTime(); // Valida data e hora juntas
 
         if (!dataValida) {
-            // Tenta dar um erro mais específico baseado no que falhou
             if (!this.data || !/^\d{4}-\d{2}-\d{2}$/.test(this.data)) {
                 erros.push('Formato da data inválido (AAAA-MM-DD).');
             } else if (this.hora !== null && !/^\d{2}:\d{2}$/.test(this.hora)) {
-                // Só valida formato da hora se ela existir (não for null)
                 erros.push('Formato da hora inválido (HH:MM).');
             } else {
-                // Se formatos estão ok, mas getDateTime falhou, é data/hora logicamente inválida
                 erros.push('Data ou hora inválida (ex: 31/02, 25:00).');
             }
         }
@@ -136,7 +117,6 @@
             }
         }
 
-        // Validação de data futura apenas para agendamentos e se a data for válida
         if (this.status === 'agendada' && dataValida) {
             const agora = new Date();
             agora.setSeconds(0, 0); // Compara sem segundos/ms

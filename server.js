@@ -5,6 +5,66 @@ const express = require('express');
 const axios = require('axios');
 const path = require("path");
 
+// --- BANCO DE DADOS SIMULADO (CONSTANTES) ---
+
+const servicosOferecidos = [
+    {
+        id: "s01",
+        nome: "Troca de Óleo",
+        descricao: "Troca completa de óleo do motor e filtro de óleo. Usamos óleos sintéticos e semissintéticos de alta qualidade."
+    },
+    {
+        id: "s02",
+        nome: "Alinhamento e Balanceamento",
+        descricao: "Ajuste preciso da geometria das rodas e balanceamento para evitar desgastes irregulares e trepidação."
+    },
+    {
+        id: "s03",
+        nome: "Revisão de Freios",
+        descricao: "Inspeção e substituição de pastilhas, discos e fluido de freio para garantir sua segurança."
+    },
+    {
+        id: "s04",
+        nome: "Pintura Personalizada",
+        descricao: "Serviços de pintura automotiva, de pequenos retoques a mudanças completas de cor com acabamento profissional."
+    },
+    {
+        id: "s05",
+        nome: "Manutenção de Motor",
+        descricao: "Diagnóstico e reparo de problemas no motor, incluindo sistema de injeção, velas e correias."
+    }
+];
+
+const destinosPopulares = [
+    {
+        destino: "Tóquio",
+        pais: "Japão",
+        descricao: "Uma metrópole vibrante onde a tradição milenar encontra a tecnologia futurista.",
+        imagem_url: "https://images.unsplash.com/photo-1542051841857-5f90071e7989?w=500&q=80"
+    },
+    {
+        destino: "Paris",
+        pais: "França",
+        descricao: "A cidade do amor, famosa por sua arte, gastronomia e monumentos icônicos.",
+        imagem_url: "https://res.cloudinary.com/dtljonz0f/image/upload/c_auto,ar_1:1,w_3840,g_auto/f_auto/q_auto/v1/gc-v1/paris/3%20giorni%20a%20Parigi%20Tour%20Eiffel?_a=BAVAZGE70"
+    },
+    {
+        destino: "Rio de Janeiro",
+        pais: "Brasil",
+        descricao: "Conhecida por suas praias, o Cristo Redentor e a energia contagiante do carnaval.",
+        imagem_url: "https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=500&q=80"
+    },
+    {
+        destino: "Kyoto",
+        pais: "Japão",
+        descricao: "A antiga capital imperial, repleta de templos, jardins zen e gueixas.",
+        imagem_url: "https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?w=500&q=80"
+    }
+];
+
+
+// --- CONFIGURAÇÃO DO SERVIDOR ---
+
 const app = express();
 const cors = require('cors');
 const PORT = process.env.PORT || 3000;
@@ -14,41 +74,21 @@ const apiKey = process.env.OPENWEATHER_API_KEY;
 app.use(cors());
 
 // 2. Define as rotas da API
+
+// Rota de Serviços Oferecidos
+app.get('/api/garagem/servicos-oferecidos', (req, res) => {
+    console.log("[Servidor] Rota /api/garagem/servicos-oferecidos acessada.");
+    res.json(servicosOferecidos);
+});
+
 // Rota de Viagens Populares
 app.get('/api/viagens-populares', (req, res) => {
     console.log("[Servidor] Rota /api/viagens-populares acessada.");
-    const destinosPopulares = [
-        {
-            destino: "Tóquio",
-            pais: "Japão",
-            descricao: "Uma metrópole vibrante onde a tradição milenar encontra a tecnologia futurista.",
-            imagem_url: "https://images.unsplash.com/photo-1542051841857-5f90071e7989?w=500&q=80"
-        },
-        {
-            destino: "Paris",
-            pais: "França",
-            descricao: "A cidade do amor, famosa por sua arte, gastronomia e monumentos icônicos.",
-            imagem_url: "https://res.cloudinary.com/dtljonz0f/image/upload/c_auto,ar_1:1,w_3840,g_auto/f_auto/q_auto/v1/gc-v1/paris/3%20giorni%20a%20Parigi%20Tour%20Eiffel?_a=BAVAZGE70"
-        },
-        {
-            destino: "Rio de Janeiro",
-            pais: "Brasil",
-            descricao: "Conhecida por suas praias, o Cristo Redentor e a energia contagiante do carnaval.",
-            imagem_url: "https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=500&q=80"
-        },
-        {
-            destino: "Kyoto",
-            pais: "Japão",
-            descricao: "A antiga capital imperial, repleta de templos, jardins zen e gueixas.",
-            imagem_url: "https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?w=500&q=80"
-        }
-    ];
     res.json(destinosPopulares);
 });
 
 // Rota do Clima
 app.get('/clima', async (req, res) => {
-    // ... (código da rota do clima continua o mesmo)
     const cidade = req.query.cidade;
     const tipoRequisicao = req.query.tipo;
 

@@ -1,4 +1,3 @@
-
 function fetchExtraVehicleDetails(nomeVeiculo) {
     console.log(`API Sim.: Buscando detalhes extras para: ${nomeVeiculo}...`);
 
@@ -75,5 +74,3 @@ function fetchExtraVehicleDetails(nomeVeiculo) {
         }, delay);
     });
 }
-
-// --- END OF FILE simulatedApi.js ---

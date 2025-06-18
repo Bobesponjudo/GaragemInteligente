@@ -12,19 +12,19 @@
 <body>
     <main>
         <h1>Garagem Interativa</h1> <!-- Título Mantido -->
-        <!-- NOVA SEÇÃO PARA O CLIMA -->
+        <!-- SEÇÃO PARA O CLIMA -->
         <section id="weather-container" class="container" style="text-align: center; margin-bottom: 20px;">
             <h2>Clima Atual</h2>
             <!-- INPUT E BOTÃO PARA CIDADE -->
             <div style="margin-bottom: 10px;">
-                <input type="text" id="cityInput" placeholder="Digite o nome da cidade" style="padding: 8px; border-radius: 4px; border: 1px solid #035f1e;">
+                <input type="text" id="cityInput" placeholder="Digite o nome da cidade" value="Campinas" style="padding: 8px; border-radius: 4px; border: 1px solid #035f1e;">
                 <button id="searchWeatherBtn" style="padding: 8px 12px; background-color: #4c7aaf; color: white; border: none; border-radius: 4px; cursor: pointer;">
                     Buscar Clima
                 </button>
             </div>
             <!-- FIM INPUT E BOTÃO -->
             <div id="weather-info" style="padding: 10px; background-color: rgb(165, 195, 223); border-radius: 5px;">
-                Carregando informações do clima... (ou digite uma cidade acima)
+                Carregando informações do clima...
             </div>
             <div style="margin-top: 15px; margin-bottom: 10px;">
                 <label for="forecast-days" style="margin-right: 10px;"><strong>Previsão Detalhada:</strong></label>
@@ -33,11 +33,29 @@
                 <button class="forecast-days-btn" data-days="5" style="padding: 6px 10px; margin: 0 3px; background-color: #163e79; color: white; border: none; border-radius: 4px; cursor: pointer;">5 Dias</button>
             </div>
             <div id="forecast-info" style="margin-top: 10px; display: flex; flex-wrap: wrap; justify-content: space-around; background-color: #f0fbff; padding:10px; border-radius: 5px; min-height: 150px;">
-                <!-- A previsão para N dias será inserida aqui -->
                 Selecione o número de dias para ver a previsão.
             </div>
         </section>
-        <hr> <!-- FIM DA NOVA SEÇÃO PARA O CLIMA -->
+        <hr>
+
+        <!-- NOVA SEÇÃO DE VIAGENS POPULARES -->
+        <section id="viagens-populares-container" class="container">
+            <h2>Destinos Populares</h2>
+            <div id="lista-viagens">
+                <p>Carregando destinos...</p>
+            </div>
+        </section>
+        <hr>
+
+        <!-- NOVA SEÇÃO DE SERVIÇOS OFERECIDOS -->
+        <section id="servicos-oferecidos-container" class="container">
+            <h2>Nossos Serviços</h2>
+            <div id="lista-servicos">
+                <p>Carregando serviços...</p>
+            </div>
+        </section>
+        <hr>
+
         <!-- Seção Carro -->
         <section class="container">
             <h2>Carro</h2>
@@ -53,37 +71,29 @@
                     <div class="animacao-freagem" id="animacao-freagem-carro"></div>
                 </div>
                 <p id="carro-detalhes">Modelo: <span id="modelo"></span>, Cor: <span id="cor"></span></p>
-                <!-- Info específica do carro (nenhuma neste caso) -->
             </div>
-            <div> <!-- Grupo de Inputs Criação/Atualização -->
+            <div>
                 <input type="text" id="modeloCarro" placeholder="Modelo">
                 <input type="text" id="corCarro" placeholder="Cor">
                 <button onclick="garagem.criarCarro()">Criar/Atualizar Carro</button>
             </div>
-            <div id="botoes-meuCarro" class="botoes"> <!-- Botões de Ação -->
+            <div id="botoes-meuCarro" class="botoes">
                 <button onclick="garagem.interagirComVeiculo('meuCarro', 'ligar')" id="ligar-btn">Ligar</button>
-                <button onclick="garagem.interagirComVeiculo('meuCarro', 'desligar')"
-                    id="desligar-btn">Desligar</button>
-                <button onclick="garagem.interagirComVeiculo('meuCarro', 'acelerar')"
-                    id="acelerar-btn">Acelerar</button>
+                <button onclick="garagem.interagirComVeiculo('meuCarro', 'desligar')" id="desligar-btn">Desligar</button>
+                <button onclick="garagem.interagirComVeiculo('meuCarro', 'acelerar')" id="acelerar-btn">Acelerar</button>
                 <button onclick="garagem.interagirComVeiculo('meuCarro', 'frear')" id="frear-btn">Frear</button>
-                <br> <!-- Quebra de linha para organizar -->
+                <br>
                 <input type="text" id="corPintura" placeholder="Nova Cor">
                 <button onclick="garagem.pintarVeiculo('meuCarro')" id="pintar-btn">Pintar</button>
                 <input type="number" id="combustivel" placeholder="Add Combustível (%)" min="0" max="100">
                 <button onclick="garagem.abastecerVeiculo('meuCarro')" id="abastecer-btn">Abastecer</button>
             </div>
-            <br> <!-- Adiciona quebra se necessário -->
-            <!-- NOVO BOTÃO -->
+            <br>
             <button onclick="garagem.buscarDetalhesExtras('meuCarro')" id="detalhes-meuCarro-btn">
                 Ver Detalhes (API Sim.)
             </button>
-       </div>
-        <!-- NOVO DIV PARA EXIBIR DETALHES -->
-        <div class="extra-details" id="extra-details-meuCarro" style="margin-top: 10px; padding: 8px; background-color: #f4f4f4; border: 1px solid #ddd; border-radius: 4px; display: none;">
-           <!-- Os detalhes da API simulada aparecerão aqui -->
-        </div>
-            <!-- Formulários de Manutenção para Carro -->
+            <div class="extra-details" id="extra-details-meuCarro" style="margin-top: 10px; padding: 8px; background-color: #f4f4f4; border: 1px solid #ddd; border-radius: 4px; display: none;">
+            </div>
             <div class="manutencao-forms-container">
                 <div class="manutencao-form">
                     <h4>Registrar Manutenção Realizada</h4>
@@ -104,15 +114,13 @@
             </div>
         </section>
 
-        <hr> <!-- Separador -->
+        <hr>
 
         <!-- Seção Carro Esportivo -->
         <section class="container">
             <h2>Carro Esportivo</h2>
             <div id="carroEsportivo-container">
-                <img id="carroEsportivo-imagem"
-                    src="imagens/png-clipart-black-car-dodge-challenger-grey-transport-cars-removebg-preview.png"
-                    alt="Imagem do Carro Esportivo">
+                <img id="carroEsportivo-imagem" src="imagens/png-clipart-black-car-dodge-challenger-grey-transport-cars-removebg-preview.png" alt="Imagem do Carro Esportivo">
                 <p id="carroEsportivo-status">Desligado</p>
                 <div class="painel-velocidade">
                     <div class="barra-velocidade">
@@ -122,45 +130,33 @@
                     <div class="animacao-aceleracao" id="animacao-aceleracao-carroEsportivo"></div>
                     <div class="animacao-freagem" id="animacao-freagem-carroEsportivo"></div>
                 </div>
-                <p id="carroEsportivo-detalhes">Modelo: <span id="carroEsportivo-modelo"></span>, Cor: <span
-                        id="carroEsportivo-cor"></span></p>
-                <p id="infoEsportivo"></p> <!-- Info específica (Turbo) -->
+                <p id="carroEsportivo-detalhes">Modelo: <span id="carroEsportivo-modelo"></span>, Cor: <span id="carroEsportivo-cor"></span></p>
+                <p id="infoEsportivo"></p>
             </div>
-            <div> <!-- Grupo de Inputs Criação/Atualização -->
+            <div>
                 <input type="text" id="modeloEsportivo" placeholder="Modelo">
                 <input type="text" id="corEsportivo" placeholder="Cor">
                 <button onclick="garagem.criarCarroEsportivo()">Criar/Atualizar Carro Esportivo</button>
             </div>
-            <div id="botoes-carroEsportivo" class="botoes"> <!-- Botões de Ação -->
-                <button onclick="garagem.interagirComVeiculo('carroEsportivo', 'ligar')"
-                    id="ligar-carroEsportivo-btn">Ligar</button>
-                <button onclick="garagem.interagirComVeiculo('carroEsportivo', 'desligar')"
-                    id="desligar-carroEsportivo-btn">Desligar</button>
-                <button onclick="garagem.interagirComVeiculo('carroEsportivo', 'acelerar')"
-                    id="acelerar-carroEsportivo-btn">Acelerar</button>
-                <button onclick="garagem.interagirComVeiculo('carroEsportivo', 'frear')"
-                    id="frear-carroEsportivo-btn">Frear</button>
+            <div id="botoes-carroEsportivo" class="botoes">
+                <button onclick="garagem.interagirComVeiculo('carroEsportivo', 'ligar')" id="ligar-carroEsportivo-btn">Ligar</button>
+                <button onclick="garagem.interagirComVeiculo('carroEsportivo', 'desligar')" id="desligar-carroEsportivo-btn">Desligar</button>
+                <button onclick="garagem.interagirComVeiculo('carroEsportivo', 'acelerar')" id="acelerar-carroEsportivo-btn">Acelerar</button>
+                <button onclick="garagem.interagirComVeiculo('carroEsportivo', 'frear')" id="frear-carroEsportivo-btn">Frear</button>
                 <button onclick="garagem.interagirComVeiculo('carroEsportivo', 'ativarTurbo')">Ativar Turbo</button>
-                <button onclick="garagem.interagirComVeiculo('carroEsportivo', 'desativarTurbo')">Desativar
-                    Turbo</button>
+                <button onclick="garagem.interagirComVeiculo('carroEsportivo', 'desativarTurbo')">Desativar Turbo</button>
                 <br>
                 <input type="text" id="corPinturaEsportivo" placeholder="Nova Cor">
                 <button onclick="garagem.pintarVeiculo('carroEsportivo')" id="pintar-carroEsportivo-btn">Pintar</button>
                 <input type="number" id="combustivelEsportivo" placeholder="Add Combustível (%)" min="0" max="100">
-                <button onclick="garagem.abastecerVeiculo('carroEsportivo')"
-                    id="abastecer-carroEsportivo-btn">Abastecer</button>
+                <button onclick="garagem.abastecerVeiculo('carroEsportivo')" id="abastecer-carroEsportivo-btn">Abastecer</button>
             </div>
-            <br> <!-- Adiciona quebra se necessário -->
-            <!-- NOVO BOTÃO -->
+            <br>
             <button onclick="garagem.buscarDetalhesExtras('carroEsportivo')" id="detalhes-carroEsportivo-btn">
                 Ver Detalhes (API Sim.)
             </button>
-       </div>
-        <!-- NOVO DIV PARA EXIBIR DETALHES -->
-        <div class="extra-details" id="extra-details-carroEsportivo" style="margin-top: 10px; padding: 8px; background-color: #f4f4f4; border: 1px solid #ddd; border-radius: 4px; display: none;">
-           <!-- Os detalhes da API simulada aparecerão aqui -->
-        </div>
-            <!-- Formulários de Manutenção para Esportivo -->
+            <div class="extra-details" id="extra-details-carroEsportivo" style="margin-top: 10px; padding: 8px; background-color: #f4f4f4; border: 1px solid #ddd; border-radius: 4px; display: none;">
+            </div>
             <div class="manutencao-forms-container">
                 <div class="manutencao-form">
                     <h4>Registrar Manutenção Realizada</h4>
@@ -187,9 +183,7 @@
         <section class="container">
             <h2>Caminhão</h2>
             <div id="caminhao-container">
-                <img id="caminhao-imagem"
-                    src="imagens/Scania-30-G.webp"
-                    alt="Imagem do Caminhão">
+                <img id="caminhao-imagem" src="imagens/Scania-30-G.webp" alt="Imagem do Caminhão">
                 <p id="caminhao-status">Desligado</p>
                 <div class="painel-velocidade">
                     <div class="barra-velocidade">
@@ -199,26 +193,20 @@
                     <div class="animacao-aceleracao" id="animacao-aceleracao-caminhao"></div>
                     <div class="animacao-freagem" id="animacao-freagem-caminhao"></div>
                 </div>
-                <!-- Detalhes originais (carga vai para #infoCaminhao) -->
-                <p id="caminhao-detalhes">Modelo: <span id="caminhao-modelo"></span>, Cor: <span
-                        id="caminhao-cor"></span></p>
-                <p id="infoCaminhao"></p> <!-- Info específica (Carga) -->
+                <p id="caminhao-detalhes">Modelo: <span id="caminhao-modelo"></span>, Cor: <span id="caminhao-cor"></span></p>
+                <p id="infoCaminhao"></p>
             </div>
-            <div> <!-- Grupo de Inputs Criação/Atualização -->
+            <div>
                 <input type="text" id="modeloCaminhao" placeholder="Modelo">
                 <input type="text" id="corCaminhao" placeholder="Cor">
                 <input type="number" id="capacidadeCarga" placeholder="Capacidade (kg)" min="0">
                 <button onclick="garagem.criarCaminhao()">Criar/Atualizar Caminhão</button>
             </div>
-            <div id="botoes-caminhao" class="botoes"> <!-- Botões de Ação -->
-                <button onclick="garagem.interagirComVeiculo('caminhao', 'ligar')"
-                    id="ligar-caminhao-btn">Ligar</button>
-                <button onclick="garagem.interagirComVeiculo('caminhao', 'desligar')"
-                    id="desligar-caminhao-btn">Desligar</button>
-                <button onclick="garagem.interagirComVeiculo('caminhao', 'acelerar')"
-                    id="acelerar-caminhao-btn">Acelerar</button>
-                <button onclick="garagem.interagirComVeiculo('caminhao', 'frear')"
-                    id="frear-caminhao-btn">Frear</button>
+            <div id="botoes-caminhao" class="botoes">
+                <button onclick="garagem.interagirComVeiculo('caminhao', 'ligar')" id="ligar-caminhao-btn">Ligar</button>
+                <button onclick="garagem.interagirComVeiculo('caminhao', 'desligar')" id="desligar-caminhao-btn">Desligar</button>
+                <button onclick="garagem.interagirComVeiculo('caminhao', 'acelerar')" id="acelerar-caminhao-btn">Acelerar</button>
+                <button onclick="garagem.interagirComVeiculo('caminhao', 'frear')" id="frear-caminhao-btn">Frear</button>
                 <br>
                 <input type="number" id="pesoCarga" placeholder="Peso Carga (kg)" min="0">
                 <button onclick="garagem.interagirComVeiculo('caminhao', 'carregar')">Carregar</button>
@@ -230,17 +218,12 @@
                 <input type="number" id="combustivelCaminhao" placeholder="Add Combustível (%)" min="0" max="100">
                 <button onclick="garagem.abastecerVeiculo('caminhao')" id="abastecer-caminhao-btn">Abastecer</button>
             </div>
-            <br> <!-- Adiciona quebra se necessário -->
-            <!-- NOVO BOTÃO -->
+            <br>
             <button onclick="garagem.buscarDetalhesExtras('caminhao')" id="detalhes-caminhao-btn">
                 Ver Detalhes (API Sim.)
             </button>
-       </div>
-        <!-- NOVO DIV PARA EXIBIR DETALHES -->
-        <div class="extra-details" id="extra-details-caminhao" style="margin-top: 10px; padding: 8px; background-color: #f4f4f4; border: 1px solid #ddd; border-radius: 4px; display: none;">
-           <!-- Os detalhes da API simulada aparecerão aqui -->
-        </div>
-            <!-- Formulários de Manutenção para Caminhão -->
+            <div class="extra-details" id="extra-details-caminhao" style="margin-top: 10px; padding: 8px; background-color: #f4f4f4; border: 1px solid #ddd; border-radius: 4px; display: none;">
+            </div>
             <div class="manutencao-forms-container">
                 <div class="manutencao-form">
                     <h4>Registrar Manutenção Realizada</h4>
@@ -267,9 +250,7 @@
         <section class="container">
             <h2>Moto</h2>
             <div id="moto-container">
-                <img id="moto-imagem"
-                    src="imagens/pngtree-the-black-and-green-kawasaki-ninja-zx-r-motorcycle-is-displayed-png-image_15547047.png"
-                    alt="Imagem da Moto">
+                <img id="moto-imagem" src="imagens/pngtree-the-black-and-green-kawasaki-ninja-zx-r-motorcycle-is-displayed-png-image_15547047.png" alt="Imagem da Moto">
                 <p id="moto-status">Desligada</p>
                 <div class="painel-velocidade">
                     <div class="barra-velocidade">
@@ -280,19 +261,17 @@
                     <div class="animacao-freagem" id="animacao-freagem-moto"></div>
                 </div>
                 <p id="moto-detalhes">Modelo: <span id="moto-modelo"></span>, Cor: <span id="moto-cor"></span></p>
-                <p id="infoMoto"></p> <!-- Info específica (nenhuma) -->
+                <p id="infoMoto"></p>
             </div>
-            <div> <!-- Grupo de Inputs Criação/Atualização -->
+            <div>
                 <input type="text" id="modeloMoto" placeholder="Modelo">
                 <input type="text" id="corMoto" placeholder="Cor">
                 <button onclick="garagem.criarMoto()">Criar/Atualizar Moto</button>
             </div>
-            <div id="botoes-moto" class="botoes"> <!-- Botões de Ação -->
+            <div id="botoes-moto" class="botoes">
                 <button onclick="garagem.interagirComVeiculo('moto', 'ligar')" id="ligar-moto-btn">Ligar</button>
-                <button onclick="garagem.interagirComVeiculo('moto', 'desligar')"
-                    id="desligar-moto-btn">Desligar</button>
-                <button onclick="garagem.interagirComVeiculo('moto', 'acelerar')"
-                    id="acelerar-moto-btn">Acelerar</button>
+                <button onclick="garagem.interagirComVeiculo('moto', 'desligar')" id="desligar-moto-btn">Desligar</button>
+                <button onclick="garagem.interagirComVeiculo('moto', 'acelerar')" id="acelerar-moto-btn">Acelerar</button>
                 <button onclick="garagem.interagirComVeiculo('moto', 'frear')" id="frear-moto-btn">Frear</button>
                 <br>
                 <input type="text" id="corPinturaMoto" placeholder="Nova Cor">
@@ -300,17 +279,12 @@
                 <input type="number" id="combustivelMoto" placeholder="Add Combustível (%)" min="0" max="100">
                 <button onclick="garagem.abastecerVeiculo('moto')" id="abastecer-moto-btn">Abastecer</button>
             </div>
-            <br> <!-- Adiciona quebra se necessário -->
-            <!-- NOVO BOTÃO -->
+            <br>
             <button onclick="garagem.buscarDetalhesExtras('moto')" id="detalhes-moto-btn">
                 Ver Detalhes (API Sim.)
             </button>
-       </div>
-        <!-- NOVO DIV PARA EXIBIR DETALHES -->
-        <div class="extra-details" id="extra-details-moto" style="margin-top: 10px; padding: 8px; background-color: #f4f4f4; border: 1px solid #ddd; border-radius: 4px; display: none;">
-           <!-- Os detalhes da API simulada aparecerão aqui -->
-        </div>
-            <!-- Formulários de Manutenção para Moto -->
+            <div class="extra-details" id="extra-details-moto" style="margin-top: 10px; padding: 8px; background-color: #f4f4f4; border: 1px solid #ddd; border-radius: 4px; display: none;">
+            </div>
             <div class="manutencao-forms-container">
                 <div class="manutencao-form">
                     <h4>Registrar Manutenção Realizada</h4>
@@ -333,18 +307,15 @@
 
         <hr>
 
-        <!-- Seção Lista de Agendamentos Futuros -->
         <section class="container">
             <h2>Agendamentos Futuros</h2>
             <ul id="listaAgendamentos">
-                <!-- Itens agendados serão adicionados aqui pelo JS -->
-                <li class="nenhum">Carregando agendamentos...</li> <!-- Placeholder -->
+                <li class="nenhum">Carregando agendamentos...</li>
             </ul>
         </section>
 
         <hr>
 
-        <!-- Seção Exibir Informações -->
         <section class="container">
             <h2>Exibir Informações do Veículo Selecionado</h2>
             <div class="botoes">
@@ -353,8 +324,7 @@
                 <button onclick="garagem.exibirInformacoes('caminhao')">Exibir Caminhão</button>
                 <button onclick="garagem.exibirInformacoes('moto')">Exibir Moto</button>
             </div>
-            <div id="informacoesVeiculo">Selecione um veículo acima para ver seus detalhes e histórico de manutenção
-                concluída.</div> <!-- Texto Padrão Atualizado -->
+            <div id="informacoesVeiculo">Selecione um veículo acima para ver seus detalhes e histórico de manutenção concluída.</div>
         </section>
 
     </main>

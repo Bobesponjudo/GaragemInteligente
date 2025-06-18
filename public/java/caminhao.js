@@ -1,4 +1,3 @@
-
 class Caminhao extends Carro {
     constructor(modelo, cor, capacidadeCarga) {
         super(modelo, cor);

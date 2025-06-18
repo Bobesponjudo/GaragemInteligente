@@ -1,8 +1,3 @@
-// --- START OF FILE weatherService.js ---
-
-// A CHAVE DA API ESTÁ SEGURA NO SERVIDOR (server.js)
-// Este arquivo frontend NÃO DEVE MAIS CONTER A CHAVE DIRETAMENTE.
-
 /**
  * Busca dados do clima para uma cidade específica chamando o NOSSO BACKEND.
  * @param {string} cidade - O nome da cidade (ex: "Campinas").
@@ -71,38 +66,33 @@ async function fetchForecastData(cidade = "Campinas", numDays = 3) {
             };
         }
 
-        // O backend retorna os dados completos da API de forecast.
-        // A LÓGICA DE PROCESSAMENTO PARA EXTRAIR 'numDays' CONTINUA AQUI NO FRONTEND:
         const dailyForecasts = [];
         const processedDates = new Set();
 
-        // O erro "data.list is not iterable" ocorria aqui. Vamos adicionar uma verificação robusta.
-        if (data && data.list && Array.isArray(data.list)) { // VERIFICAÇÃO IMPORTANTE
-            for (const item of data.list) { // Agora 'item' é cada entrada da previsão a cada 3h
+        if (data && data.list && Array.isArray(data.list)) {
+            for (const item of data.list) {
                 const forecastDate = item.dt_txt.substring(0, 10);
                 if (!processedDates.has(forecastDate) && dailyForecasts.length < numDays) {
                     processedDates.add(forecastDate);
-                    dailyForecasts.push(item); // Adiciona o item completo da previsão
+                    dailyForecasts.push(item);
                 }
                 if (dailyForecasts.length >= numDays) {
                     break;
                 }
             }
         } else {
-            // Se data.list não existir ou não for um array, é um problema com a resposta da API ou do backend
             console.error("[WeatherService] Resposta da API (via backend) para previsão não contém 'list' como um array:", data);
-            // Informar o usuário ou retornar um erro específico
             return {
-                cod: data.cod || 500, // Usa o código de erro da API se disponível, senão um erro genérico
+                cod: data.cod || 500,
                 message: data.message || "Dados da previsão recebidos do servidor estão em formato inesperado ou são inválidos."
             };
         }
 
         console.log(`[WeatherService] Dados da PREVISÃO (do backend) processados para ${cidade} (${numDays} dias):`, dailyForecasts);
         return {
-            cod: 200, // Sucesso no processamento frontend após receber dados válidos
-            city: data.city, // Informações da cidade vêm com a previsão
-            list: dailyForecasts // Lista de previsões diárias processadas
+            cod: 200,
+            city: data.city,
+            list: dailyForecasts
         };
 
     } catch (error) {
@@ -111,7 +101,4 @@ async function fetchForecastData(cidade = "Campinas", numDays = 3) {
             cod: 0,
             message: "Falha na comunicação com o servidor para obter previsão. Verifique sua conexão."
         };
-    }
-}
-
-// --- END OF FILE weatherService.js ---
+    } }

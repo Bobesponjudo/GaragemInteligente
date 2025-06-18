@@ -1,4 +1,3 @@
-
 class Carro extends Veiculo {
     constructor(modelo, cor) {
         super(modelo, cor);
@@ -236,4 +235,3 @@ class Carro extends Veiculo {
      * @returns {string} Informações formatadas do carro.
      */
 }
-

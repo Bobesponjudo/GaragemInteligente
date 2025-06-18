@@ -1,4 +1,3 @@
-
 class Moto extends Carro {
     constructor(modelo, cor) {
         super(modelo, cor);

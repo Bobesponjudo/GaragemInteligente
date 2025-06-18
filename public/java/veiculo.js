@@ -1,4 +1,3 @@
-
 class Veiculo {
     /**
      * Cria uma instância de Veiculo.
@@ -19,7 +18,8 @@ class Veiculo {
      * Pinta o veículo com uma nova cor.
      * @param {string} novaCor - A nova cor desejada.
      * @returns {boolean} True se a pintura foi bem-sucedida, false caso contrário.
-     *//**
+     */
+    /**
 * @class Veiculo
 * @description Classe base para todos os veículos da garagem. Contém propriedades
 *              e métodos comuns como pintar, abastecer e gerenciar histórico de manutenção.
@@ -129,20 +129,15 @@ class Veiculo {
     }
 
     /**
-     * Obtém o sufixo usado nos IDs dos elementos do *formulário de manutenção* deste veículo.
-     * Ex: 'Carro', 'Esportivo', 'Caminhao', 'Moto'. (Note a capitalização)
-     * @returns {string} O sufixo do ID do formulário.
-     */
-    /**
      * Obtém o sufixo capitalizado usado nos IDs dos elementos do *formulário de manutenção* deste veículo.
-     * @protected // Indica que é para uso interno ou por subclasses
+     * @protected
      * @returns {string} O sufixo do ID do formulário (ex: 'Carro', 'Esportivo', 'Caminhao', 'Moto') ou string vazia se não mapeado.
      */
     obterIdHtmlSufixoFormulario() {
         // Mapeia o nome interno para o sufixo usado nos IDs dos inputs de manutenção
         switch (this.nomeNaGaragem) {
             case 'meuCarro': return 'Carro';
-            case 'carroEsportivo': return 'Esportivo'; // Corrigido
+            case 'carroEsportivo': return 'Esportivo';
             case 'caminhao': return 'Caminhao';
             case 'moto': return 'Moto';
             default:
