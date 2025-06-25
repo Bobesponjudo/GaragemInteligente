@@ -23,6 +23,18 @@ const destinosPopulares = [
     { destino: "Kyoto", pais: "Japão", descricao: "A antiga capital imperial, repleta de templos, jardins zen e gueixas.", imagem_url: "https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?w=500&q=80" }
 ];
 
+// NOVO: Mapeia problemas comuns a um ID de serviço oferecido
+const problemasComuns = [
+    { id: "p01", problema: "Motor falhando ou com perda de potência", servicoId: "s05" },
+    { id: "p02", problema: "Barulho ou chiado ao frear", servicoId: "s03" },
+    { id: "p03", problema: "Veículo puxando para um lado ou volante torto", servicoId: "s02" },
+    { id: "p04", problema: "Vibração no volante em altas velocidades", servicoId: "s02" },
+    { id: "p05", problema: "Pintura arranhada, desbotada ou danificada", servicoId: "s04" },
+    { id: "p06", problema: "Luz de óleo acesa ou troca de óleo necessária", servicoId: "s01" },
+    { id: "p07", problema: "Dificuldade para ligar o motor", servicoId: "s05" },
+];
+
+
 // --- LÓGICA DE PERSISTÊNCIA DAS DICAS ---
 const DICAS_FILE_PATH = path.join(__dirname, 'dicas.json');
 
@@ -123,6 +135,12 @@ app.put('/api/dicas/:modelo', (req, res) => {
     
     console.log("[Servidor] Dica atualizada:", dicasVeiculos[index]);
     res.json(dicasVeiculos[index]);
+});
+
+// NOVO: Rota para obter a lista de problemas de diagnóstico
+app.get('/api/garagem/diagnostico', (req, res) => {
+    console.log("[Servidor] Rota /api/garagem/diagnostico acessada.");
+    res.json(problemasComuns);
 });
 
 // Rota de Serviços Oferecidos

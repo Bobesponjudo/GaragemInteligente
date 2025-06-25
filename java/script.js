@@ -5,6 +5,49 @@
 // =============================================================================
 
 /**
+ * Busca e exibe os serviços oferecidos pela garagem.
+ */
+async function carregarServicosOferecidos() {
+    console.log("[Serviços] Tentando carregar serviços oferecidos...");
+    const listaServicosDiv = document.getElementById('lista-servicos');
+    if (!listaServicosDiv) {
+        console.error("[Serviços] Elemento 'lista-servicos' não encontrado no HTML.");
+        return;
+    }
+
+    try {
+        const response = await fetch('http://localhost:3000/api/garagem/servicos-oferecidos');
+        if (!response.ok) {
+            throw new Error(`Erro na API de serviços: ${response.statusText}`);
+        }
+        const servicos = await response.json();
+
+        listaServicosDiv.innerHTML = ''; // Limpa a mensagem de "carregando"
+
+        if (servicos.length === 0) {
+            listaServicosDiv.innerHTML = '<p>Nenhum serviço oferecido no momento.</p>';
+            return;
+        }
+
+        servicos.forEach(servico => {
+            const card = document.createElement('div');
+            card.className = 'servico-card'; // Classe para estilização
+            card.innerHTML = `
+                <h3>${servico.nome}</h3>
+                <p>${servico.descricao}</p>
+            `;
+            listaServicosDiv.appendChild(card);
+        });
+        console.log("[Serviços] Serviços carregados e exibidos com sucesso.");
+
+    } catch (error) {
+        console.error("Erro ao carregar serviços:", error);
+        listaServicosDiv.innerHTML = '<p style="color: red;">Não foi possível carregar os serviços. Verifique a conexão com o servidor.</p>';
+    }
+}
+
+
+/**
  * Busca e exibe destinos de viagem populares da API do nosso servidor.
  */
 async function carregarViagensPopulares() {
@@ -67,8 +110,8 @@ window.onload = () => {
     }
 
     // --- CARREGA DADOS DAS APIS ---
-    // AQUI ESTÁ A CORREÇÃO: Adicionamos a chamada da função.
     carregarViagensPopulares();
+    carregarServicosOferecidos();
 
     // --- INÍCIO: Lógica para o seletor de cidade do clima ---
     const cityInput = document.getElementById('cityInput');
@@ -132,6 +175,111 @@ window.onload = () => {
         console.warn("Elementos para botões de previsão (forecast-days-btn, cityInput ou forecast-info) não encontrados.");
     }
     // --- FIM: Lógica para botões de previsão de N dias ---
+
+    // --- INÍCIO: LÓGICA PARA DICAS DA COMUNIDADE ---
+    const buscarDicaBtn = document.getElementById('buscarDicaBtn');
+    const dicaModeloInput = document.getElementById('dicaModeloInput');
+    const dicaModal = document.getElementById('dicaModal');
+    const closeDicaModal = document.getElementById('closeDicaModal');
+    const dicaForm = document.getElementById('dicaForm');
+
+    // Função para abrir o modal em modo 'add' ou 'edit'
+    const abrirModalDica = (modo, dados) => {
+        const modalTitle = document.getElementById('dicaModalTitle');
+        const formModo = document.getElementById('dicaFormModo');
+        const formModelo = document.getElementById('dicaFormModelo');
+        const formTexto = document.getElementById('dicaFormTexto');
+        const formAutor = document.getElementById('dicaFormAutor');
+
+        formModo.value = modo;
+        formModelo.value = dados.modelo;
+
+        if (modo === 'edit') {
+            modalTitle.textContent = `Editar Dica para ${dados.modelo}`;
+            formTexto.value = dados.dica;
+            formAutor.value = dados.autor;
+        } else { // modo 'add'
+            modalTitle.textContent = `Adicionar Dica para ${dados.modelo}`;
+            formTexto.value = '';
+            formAutor.value = '';
+        }
+        dicaModal.style.display = 'block';
+    };
+
+    // Função para fechar o modal
+    const fecharModalDica = () => {
+        dicaModal.style.display = 'none';
+        dicaForm.reset();
+    };
+    
+    // Evento no botão de busca
+    buscarDicaBtn.addEventListener('click', async () => {
+        const modelo = dicaModeloInput.value.trim();
+        if (!modelo) {
+            alert("Por favor, digite um modelo de veículo.");
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://localhost:3000/api/dicas/${encodeURIComponent(modelo)}`);
+            if (response.ok) { // Encontrou dica (status 200)
+                const dica = await response.json();
+                abrirModalDica('edit', dica);
+            } else if (response.status === 404) { // Não encontrou
+                if (confirm(`Nenhuma dica encontrada para "${modelo}". Deseja adicionar uma?`)) {
+                    abrirModalDica('add', { modelo: modelo });
+                }
+            } else {
+                throw new Error(`Erro do servidor: ${response.statusText}`);
+            }
+        } catch (error) {
+            console.error("Erro ao buscar dica:", error);
+            alert("Não foi possível buscar a dica. Verifique a conexão com o servidor.");
+        }
+    });
+
+    // Evento para salvar o formulário do modal
+    dicaForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        
+        const modo = document.getElementById('dicaFormModo').value;
+        const modelo = document.getElementById('dicaFormModelo').value;
+        const dica = document.getElementById('dicaFormTexto').value;
+        const autor = document.getElementById('dicaFormAutor').value;
+        
+        const url = `http://localhost:3000/api/dicas${modo === 'edit' ? '/' + encodeURIComponent(modelo) : ''}`;
+        const method = modo === 'edit' ? 'PUT' : 'POST';
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ modelo, dica, autor }),
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert(`Dica ${modo === 'edit' ? 'atualizada' : 'adicionada'} com sucesso!`);
+                fecharModalDica();
+            } else {
+                throw new Error(result.message || "Ocorreu um erro no servidor.");
+            }
+        } catch (error) {
+            console.error("Erro ao salvar dica:", error);
+            alert(`Erro ao salvar: ${error.message}`);
+        }
+    });
+
+    // Eventos para fechar o modal
+    closeDicaModal.addEventListener('click', fecharModalDica);
+    window.addEventListener('click', (event) => {
+        if (event.target === dicaModal) {
+            fecharModalDica();
+        }
+    });
+    // --- FIM: LÓGICA PARA DICAS DA COMUNIDADE ---
+
 
     if (Object.keys(garagem.veiculos).length === 0) {
         console.log("Garagem vazia. Criando veículos padrão...");

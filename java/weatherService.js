@@ -101,5 +101,4 @@ async function fetchForecastData(cidade = "Campinas", numDays = 3) {
             cod: 0,
             message: "Falha na comunicação com o servidor para obter previsão. Verifique sua conexão."
         };
-    }
-}
+    } }
