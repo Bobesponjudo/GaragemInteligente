@@ -549,3 +549,17 @@ div>input[type="number"] {
     padding: 12px 20px;
     font-size: 1.1em;
 }
+
+/* --- NOVO: Estilos para Diagnóstico --- */
+.btn-diagnostico {
+    background-color: #4c6faf; /* Verde */
+    border-color: #4c6baf;
+}
+
+.btn-diagnostico:hover:not(:disabled) {
+    background-color: #456ca0;
+}
+
+#diagnosticoResultado {
+    border-top: 1px dashed #ccc;
+}

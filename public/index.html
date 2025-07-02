@@ -93,6 +93,8 @@
                 <button onclick="garagem.interagirComVeiculo('meuCarro', 'desligar')" id="desligar-btn">Desligar</button>
                 <button onclick="garagem.interagirComVeiculo('meuCarro', 'acelerar')" id="acelerar-btn">Acelerar</button>
                 <button onclick="garagem.interagirComVeiculo('meuCarro', 'frear')" id="frear-btn">Frear</button>
+                <!-- NOVO BOTÃO ABAIXO -->
+                <button onclick="garagem.abrirModalDiagnostico('meuCarro')" class="btn-diagnostico">Diagnosticar Problema</button>
                 <br>
                 <input type="text" id="corPintura" placeholder="Nova Cor">
                 <button onclick="garagem.pintarVeiculo('meuCarro')" id="pintar-btn">Pintar</button>
@@ -156,6 +158,8 @@
                 <button onclick="garagem.interagirComVeiculo('carroEsportivo', 'frear')" id="frear-carroEsportivo-btn">Frear</button>
                 <button onclick="garagem.interagirComVeiculo('carroEsportivo', 'ativarTurbo')">Ativar Turbo</button>
                 <button onclick="garagem.interagirComVeiculo('carroEsportivo', 'desativarTurbo')">Desativar Turbo</button>
+                <!-- NOVO BOTÃO ABAIXO -->
+                <button onclick="garagem.abrirModalDiagnostico('carroEsportivo')" class="btn-diagnostico">Diagnosticar Problema</button>
                 <br>
                 <input type="text" id="corPinturaEsportivo" placeholder="Nova Cor">
                 <button onclick="garagem.pintarVeiculo('carroEsportivo')" id="pintar-carroEsportivo-btn">Pintar</button>
@@ -218,6 +222,8 @@
                 <button onclick="garagem.interagirComVeiculo('caminhao', 'desligar')" id="desligar-caminhao-btn">Desligar</button>
                 <button onclick="garagem.interagirComVeiculo('caminhao', 'acelerar')" id="acelerar-caminhao-btn">Acelerar</button>
                 <button onclick="garagem.interagirComVeiculo('caminhao', 'frear')" id="frear-caminhao-btn">Frear</button>
+                <!-- NOVO BOTÃO ABAIXO -->
+                <button onclick="garagem.abrirModalDiagnostico('caminhao')" class="btn-diagnostico">Diagnosticar Problema</button>
                 <br>
                 <input type="number" id="pesoCarga" placeholder="Peso Carga (kg)" min="0">
                 <button onclick="garagem.interagirComVeiculo('caminhao', 'carregar')">Carregar</button>
@@ -284,6 +290,8 @@
                 <button onclick="garagem.interagirComVeiculo('moto', 'desligar')" id="desligar-moto-btn">Desligar</button>
                 <button onclick="garagem.interagirComVeiculo('moto', 'acelerar')" id="acelerar-moto-btn">Acelerar</button>
                 <button onclick="garagem.interagirComVeiculo('moto', 'frear')" id="frear-moto-btn">Frear</button>
+                <!-- NOVO BOTÃO ABAIXO -->
+                <button onclick="garagem.abrirModalDiagnostico('moto')" class="btn-diagnostico">Diagnosticar Problema</button>
                 <br>
                 <input type="text" id="corPinturaMoto" placeholder="Nova Cor">
                 <button onclick="garagem.pintarVeiculo('moto')" id="pintar-moto-btn">Pintar</button>
@@ -361,6 +369,27 @@
         </div>
     </div>
     
+    <!-- NOVO: MODAL PARA DIAGNÓSTICO (escondido por padrão) -->
+    <div id="diagnosticoModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeDiagnosticoModal">×</span>
+            <h3 id="diagnosticoModalTitle">Diagnóstico do Veículo</h3>
+            
+            <input type="hidden" id="diagnosticoVeiculoNome"> <!-- Guarda o nome interno do veículo -->
+            
+            <label for="diagnosticoProblemaSelect">Selecione o problema principal:</label>
+            <select id="diagnosticoProblemaSelect" style="width: 100%; padding: 8px; margin-top: 5px;">
+                <option value="">-- Carregando problemas... --</option>
+            </select>
+            
+            <button id="analisarProblemaBtn" style="margin-top: 15px;">Analisar</button>
+    
+            <div id="diagnosticoResultado" style="margin-top: 20px; padding: 15px; background: #f0f8ff; border-radius: 5px; display: none;">
+                <!-- O resultado da análise aparecerá aqui -->
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts JS -->
     <script src="java/manutencao.js"></script>
     <script src="java/veiculo.js"></script>

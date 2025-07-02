@@ -2,6 +2,10 @@ class Garagem {
     constructor() {
         this.veiculos = {}; // Objeto para armazenar instâncias: { nomeInterno: Veiculo }
         this.localStorageKey = 'dadosGaragemCompleta_v6'; // Chave para localStorage
+        // NOVAS PROPRIEDADES
+        this.servicosDisponiveis = []; // Cache dos serviços
+        this.problemasDiagnostico = []; // Cache dos problemas
+
         this.carregarGaragem(); // Tenta carregar dados ao inicializar
         this.carregarEExibirClima(); // Você pode passar uma cidade padrão aqui se quiser
     }
@@ -867,4 +871,156 @@ class Garagem {
         }
     }
 
+    // --- NOVO: Sistema de Diagnóstico ---
+
+    /**
+     * NOVO: Busca e armazena em cache os problemas e serviços do backend.
+     */
+    async _carregarDadosDiagnostico() {
+        try {
+            // Se já tivermos dados, não busca de novo
+            if (this.servicosDisponiveis.length > 0 && this.problemasDiagnostico.length > 0) {
+                return true;
+            }
+            
+            console.log("[Diagnóstico] Carregando serviços e problemas da API...");
+            const [servicosRes, problemasRes] = await Promise.all([
+                fetch('http://localhost:3000/api/garagem/servicos-oferecidos'),
+                fetch('http://localhost:3000/api/garagem/diagnostico')
+            ]);
+
+            if (!servicosRes.ok || !problemasRes.ok) {
+                throw new Error('Falha ao comunicar com a API de diagnóstico/serviços.');
+            }
+
+            this.servicosDisponiveis = await servicosRes.json();
+            this.problemasDiagnostico = await problemasRes.json();
+            
+            console.log("[Diagnóstico] Dados carregados com sucesso:", { 
+                servicos: this.servicosDisponiveis.length, 
+                problemas: this.problemasDiagnostico.length 
+            });
+            return true;
+        } catch (error) {
+            console.error("Erro ao carregar dados de diagnóstico:", error);
+            alert("Não foi possível carregar o sistema de diagnóstico. Verifique a conexão com o servidor.");
+            return false;
+        }
+    }
+
+    /**
+     * NOVO: Abre e prepara o modal de diagnóstico para um veículo específico.
+     * @param {string} nomeVeiculo - O identificador interno do veículo.
+     */
+    async abrirModalDiagnostico(nomeVeiculo) {
+        const veiculo = this.veiculos[nomeVeiculo];
+        if (!veiculo) return alert("Veículo não encontrado para diagnóstico.");
+
+        // Garante que os dados da API estejam carregados
+        const sucesso = await this._carregarDadosDiagnostico();
+        if (!sucesso) return; // Se falhar ao carregar, não abre o modal
+
+        // Elementos do Modal
+        const modal = document.getElementById('diagnosticoModal');
+        const modalTitle = document.getElementById('diagnosticoModalTitle');
+        const veiculoNomeInput = document.getElementById('diagnosticoVeiculoNome');
+        const problemaSelect = document.getElementById('diagnosticoProblemaSelect');
+        const resultadoDiv = document.getElementById('diagnosticoResultado');
+        const closeBtn = document.getElementById('closeDiagnosticoModal');
+        const analisarBtn = document.getElementById('analisarProblemaBtn');
+
+        // Prepara o Modal
+        modalTitle.textContent = `Diagnóstico para: ${veiculo.modelo}`;
+        veiculoNomeInput.value = nomeVeiculo;
+        resultadoDiv.style.display = 'none'; // Esconde resultado anterior
+        resultadoDiv.innerHTML = '';
+
+        // Popula o <select> com os problemas
+        problemaSelect.innerHTML = '<option value="">-- Selecione um problema --</option>';
+        this.problemasDiagnostico.forEach(p => {
+            const option = document.createElement('option');
+            option.value = p.id;
+            option.textContent = p.problema;
+            problemaSelect.appendChild(option);
+        });
+        
+        // Exibe o modal
+        modal.style.display = 'block';
+
+        // --- Lógica de Eventos do Modal (criada aqui para ter acesso ao escopo) ---
+        
+        // Função para fechar e limpar eventos
+        const fecharModal = () => {
+            modal.style.display = 'none';
+            // Remove os event listeners para evitar duplicação
+            analisarBtn.onclick = null;
+            closeBtn.onclick = null;
+            window.onkeydown = null;
+        };
+        
+        // Botão de fechar
+        closeBtn.onclick = fecharModal;
+        
+        // Tecla ESC
+        window.onkeydown = (event) => {
+            if (event.key === 'Escape') fecharModal();
+        };
+
+        // Botão "Analisar"
+        analisarBtn.onclick = () => {
+            const problemaId = problemaSelect.value;
+            if (!problemaId) {
+                alert("Por favor, selecione um problema da lista.");
+                return;
+            }
+            
+            // Encontra o problema e o serviço correspondente
+            const problemaSelecionado = this.problemasDiagnostico.find(p => p.id === problemaId);
+            const servicoRecomendado = this.servicosDisponiveis.find(s => s.id === problemaSelecionado.servicoId);
+            
+            if (servicoRecomendado) {
+                resultadoDiv.innerHTML = `
+                    <h4>Serviço Recomendado:</h4>
+                    <p><strong>${servicoRecomendado.nome}</strong></p>
+                    <p>${servicoRecomendado.descricao}</p>
+                    <button id="agendarServicoBtn">Agendar este Serviço</button>
+                `;
+                resultadoDiv.style.display = 'block';
+                
+                // Adiciona evento ao novo botão "Agendar"
+                document.getElementById('agendarServicoBtn').onclick = () => {
+                    this._preencherFormAgendamento(nomeVeiculo, servicoRecomendado.nome);
+                    fecharModal();
+                };
+            } else {
+                resultadoDiv.innerHTML = '<p style="color:red;">Não encontramos um serviço específico para este problema. Por favor, descreva o serviço manualmente no agendamento.</p>';
+                resultadoDiv.style.display = 'block';
+            }
+        };
+    }
+
+    /**
+     * NOVO: Pré-preenche o formulário de agendamento e rola a tela até ele.
+     * @private
+     * @param {string} nomeVeiculo - O identificador interno do veículo.
+     * @param {string} nomeServico - O nome do serviço para preencher.
+     */
+    _preencherFormAgendamento(nomeVeiculo, nomeServico) {
+        const veiculo = this.veiculos[nomeVeiculo];
+        if (!veiculo) return;
+
+        const idSuffix = veiculo.obterIdHtmlSufixoFormulario();
+        const tipoInput = document.getElementById(`tipoAgendamento${idSuffix}`);
+        const dataInput = document.getElementById(`dataAgendamento${idSuffix}`);
+
+        if (tipoInput && dataInput) {
+            tipoInput.value = nomeServico;
+            // Rola a tela até o formulário de manutenção do veículo
+            tipoInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => dataInput.focus(), 500); // Foca no campo de data após a rolagem
+            console.log(`Formulário de agendamento para ${nomeVeiculo} preenchido com: "${nomeServico}"`);
+        } else {
+            console.error(`Inputs de agendamento para o sufixo '${idSuffix}' não encontrados.`);
+        }
+    }
 }
