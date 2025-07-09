@@ -1,41 +1,43 @@
-// server.js (Solução Recomendada)
+// ===================================================================
+// server.js (VERSÃO COMPLETA E CORRIGIDA)
+// ===================================================================
 
+// Carrega as variáveis de ambiente do arquivo .env. Deve ser a primeira linha!
 require('dotenv').config();
+
 const express = require('express');
-const axios = require('axios');
+const axios =require('axios');
 const path = require("path");
-const fs = require('fs'); // <-- NOVO: Módulo para interagir com arquivos
-
-// --- BANCO DE DADOS SIMULADO (CONSTANTES E VARIÁVEIS) ---
-
-const servicosOferecidos = [
-    { id: "s01", nome: "Troca de Óleo", descricao: "Troca completa de óleo do motor e filtro de óleo. Usamos óleos sintéticos e semissintéticos de alta qualidade." },
-    { id: "s02", nome: "Alinhamento e Balanceamento", descricao: "Ajuste preciso da geometria das rodas e balanceamento para evitar desgastes irregulares e trepidação." },
-    { id: "s03", nome: "Revisão de Freios", descricao: "Inspeção e substituição de pastilhas, discos e fluido de freio para garantir sua segurança." },
-    { id: "s04", nome: "Pintura Personalizada", descricao: "Serviços de pintura automotiva, de pequenos retoques a mudanças completas de cor com acabamento profissional." },
-    { id: "s05", nome: "Manutenção de Motor", descricao: "Diagnóstico e reparo de problemas no motor, incluindo sistema de injeção, velas e correias." }
-];
-
-const destinosPopulares = [
-    { destino: "Tóquio", pais: "Japão", descricao: "Uma metrópole vibrante onde a tradição milenar encontra a tecnologia futurista.", imagem_url: "https://images.unsplash.com/photo-1542051841857-5f90071e7989?w=500&q=80" },
-    { destino: "Paris", pais: "França", descricao: "A cidade do amor, famosa por sua arte, gastronomia e monumentos icônicos.", imagem_url: "https://res.cloudinary.com/dtljonz0f/image/upload/c_auto,ar_1:1,w_3840,g_auto/f_auto/q_auto/v1/gc-v1/paris/3%20giorni%20a%20Parigi%20Tour%20Eiffel?_a=BAVAZGE70" },
-    { destino: "Rio de Janeiro", pais: "Brasil", descricao: "Conhecida por suas praias, o Cristo Redentor e a energia contagiante do carnaval.", imagem_url: "https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=500&q=80" },
-    { destino: "Kyoto", pais: "Japão", descricao: "A antiga capital imperial, repleta de templos, jardins zen e gueixas.", imagem_url: "https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?w=500&q=80" }
-];
-
-// NOVO: Mapeia problemas comuns a um ID de serviço oferecido
-const problemasComuns = [
-    { id: "p01", problema: "Motor falhando ou com perda de potência", servicoId: "s05" },
-    { id: "p02", problema: "Barulho ou chiado ao frear", servicoId: "s03" },
-    { id: "p03", problema: "Veículo puxando para um lado ou volante torto", servicoId: "s02" },
-    { id: "p04", problema: "Vibração no volante em altas velocidades", servicoId: "s02" },
-    { id: "p05", problema: "Pintura arranhada, desbotada ou danificada", servicoId: "s04" },
-    { id: "p06", problema: "Luz de óleo acesa ou troca de óleo necessária", servicoId: "s01" },
-    { id: "p07", problema: "Dificuldade para ligar o motor", servicoId: "s05" },
-];
+const fs = require('fs');
+const cors = require('cors');
+// Importa o cliente do MongoDB para conectar ao banco de dados
+const { MongoClient } = require('mongodb');
 
 
-// --- LÓGICA DE PERSISTÊNCIA DAS DICAS ---
+// --- CONFIGURAÇÃO DO SERVIDOR E BANCO DE DADOS ---
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+app.use(express.static(path.join(__dirname, 'public'))); // Serve arquivos estáticos da pasta 'public'
+// Pega a string de conexão (URI) do arquivo .env
+const mongoURI = process.env.MONGODB_URI;
+
+// Validação CRÍTICA: Se a URI não estiver no .env, o programa não inicia.
+if (!mongoURI) {
+    console.error("\nERRO FATAL: A variável de ambiente MONGODB_URI não foi definida no arquivo .env");
+    console.error("Verifique se o arquivo .env existe na raiz do projeto e contém a linha MONGODB_URI=mongodb+srv://...\n");
+    process.exit(1); // Encerra a aplicação
+}
+
+// Cria uma nova instância do cliente do MongoDB
+const client = new MongoClient(mongoURI);
+
+// Variável global para manter a referência da conexão com o banco de dados
+let db;
+
+app.use(express.static(__dirname));
+// --- LÓGICA DE PERSISTÊNCIA DAS DICAS (usando arquivo JSON) ---
+
 const DICAS_FILE_PATH = path.join(__dirname, 'dicas.json');
 
 // Função para carregar as dicas do arquivo JSON
@@ -67,21 +69,69 @@ const salvarDicas = (dicas) => {
 let dicasVeiculos = carregarDicas();
 
 
-// --- CONFIGURAÇÃO DO SERVIDOR ---
+// --- MIDDLEWARES (Configurações do Express) ---
 
-const app = express();
-const cors = require('cors');
-const PORT = process.env.PORT || 3000;
-const apiKey = process.env.OPENWEATHER_API_KEY;
-
-// 1. Middlewares
+// Habilita CORS para permitir que o frontend (rodando em outra porta/domínio) acesse a API
 app.use(cors());
+// Habilita o Express para interpretar corpos de requisição em formato JSON
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+// Serve os arquivos estáticos (HTML, CSS, JS do frontend) da pasta raiz do projeto
+app.use(express.static(__dirname));
 
-// 2. Rotas da API
 
-// Rota para buscar uma dica específica
+// --- FUNÇÃO PARA CONECTAR AO MONGODB ---
+
+// Esta função assíncrona tenta se conectar ao MongoDB Atlas
+async function connectDB() {
+    try {
+        await client.connect();
+        db = client.db();
+        console.log(`Conectado com sucesso ao MongoDB: ${db.databaseName}!`);
+    } catch (err) {
+        console.error("Falha grave ao conectar ao MongoDB.", err);
+        process.exit(1);
+    }
+}
+
+// --- ROTAS DA API ---
+
+// Rota para buscar os serviços oferecidos (agora do MongoDB)
+app.get('/api/garagem/servicos-oferecidos', async (req, res) => {
+    try {
+        // Busca todos os documentos na coleção 'servicos' e os transforma em um array
+        const servicos = await db.collection('servicos').find({}).toArray();
+        res.json(servicos);
+    } catch (error) {
+        console.error("Erro ao buscar serviços no MongoDB:", error);
+        res.status(500).json({ message: "Erro interno ao buscar serviços." });
+    }
+});
+
+// Rota para buscar os problemas de diagnóstico (agora do MongoDB)
+app.get('/api/garagem/diagnostico', async (req, res) => {
+    try {
+        const problemas = await db.collection('problemas').find({}).toArray();
+        res.json(problemas);
+    } catch (error) {
+        console.error("Erro ao buscar problemas de diagnóstico no MongoDB:", error);
+        res.status(500).json({ message: "Erro interno ao buscar diagnósticos." });
+    }
+});
+
+
+// --- Rotas que ainda usam dados locais (para manter o exemplo) ---
+
+const destinosPopulares = [
+    { destino: "Tóquio", pais: "Japão", descricao: "Uma metrópole vibrante...", imagem_url: "https://images.unsplash.com/photo-1542051841857-5f90071e7989?w=500&q=80" },
+    { destino: "Paris", pais: "França", descricao: "A cidade do amor...", imagem_url: "https://res.cloudinary.com/dtljonz0f/image/upload/c_auto,ar_1:1,w_3840,g_auto/f_auto/q_auto/v1/gc-v1/paris/3%20giorni%20a%20Parigi%20Tour%20Eiffel?_a=BAVAZGE70" },
+    { destino: "Rio de Janeiro", pais: "Brasil", descricao: "Conhecida por suas praias...", imagem_url: "https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=500&q=80" },
+    { destino: "Kyoto", pais: "Japão", descricao: "A antiga capital imperial...", imagem_url: "https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?w=500&q=80" }
+];
+app.get('/api/viagens-populares', (req, res) => {
+    res.json(destinosPopulares);
+});
+
+// Rota para buscar uma dica específica (do arquivo dicas.json)
 app.get('/api/dicas/:modelo', (req, res) => {
     const { modelo } = req.params;
     const dica = dicasVeiculos.find(d => d.modelo.toLowerCase() === modelo.toLowerCase());
@@ -93,83 +143,46 @@ app.get('/api/dicas/:modelo', (req, res) => {
     }
 });
 
-// Rota para criar uma nova dica
+// Rota para criar uma nova dica (no arquivo dicas.json)
 app.post('/api/dicas', (req, res) => {
     const { modelo, dica, autor } = req.body;
-
-    if (!modelo || !dica) {
-        return res.status(400).json({ message: "Modelo e Dica são campos obrigatórios." });
-    }
+    if (!modelo || !dica) return res.status(400).json({ message: "Modelo e Dica são obrigatórios." });
     
     const existe = dicasVeiculos.some(d => d.modelo.toLowerCase() === modelo.toLowerCase());
-    if (existe) {
-        return res.status(409).json({ message: "Já existe uma dica para este modelo. Use a edição." });
-    }
+    if (existe) return res.status(409).json({ message: "Já existe uma dica para este modelo. Use a edição." });
 
     const novaDica = { modelo: modelo.trim(), dica: dica.trim(), autor: autor.trim() || "Anônimo" };
     dicasVeiculos.push(novaDica);
-    salvarDicas(dicasVeiculos); // <-- ALTERADO: Salva no arquivo
-    
-    console.log("[Servidor] Nova dica adicionada:", novaDica);
+    salvarDicas(dicasVeiculos);
     res.status(201).json(novaDica);
 });
 
-// Rota para atualizar uma dica existente
+// Rota para atualizar uma dica existente (no arquivo dicas.json)
 app.put('/api/dicas/:modelo', (req, res) => {
     const { modelo } = req.params;
     const { dica, autor } = req.body;
-
-    if (!dica) {
-        return res.status(400).json({ message: "O campo Dica é obrigatório para edição." });
-    }
+    if (!dica) return res.status(400).json({ message: "O campo Dica é obrigatório." });
 
     const index = dicasVeiculos.findIndex(d => d.modelo.toLowerCase() === modelo.toLowerCase());
-
-    if (index === -1) {
-        return res.status(404).json({ message: "Modelo não encontrado para edição." });
-    }
+    if (index === -1) return res.status(404).json({ message: "Modelo não encontrado para edição." });
 
     dicasVeiculos[index].dica = dica.trim();
     dicasVeiculos[index].autor = autor.trim() || "Anônimo";
-    salvarDicas(dicasVeiculos); // <-- ALTERADO: Salva no arquivo
-    
-    console.log("[Servidor] Dica atualizada:", dicasVeiculos[index]);
+    salvarDicas(dicasVeiculos);
     res.json(dicasVeiculos[index]);
 });
 
-// NOVO: Rota para obter a lista de problemas de diagnóstico
-app.get('/api/garagem/diagnostico', (req, res) => {
-    console.log("[Servidor] Rota /api/garagem/diagnostico acessada.");
-    res.json(problemasComuns);
-});
-
-// Rota de Serviços Oferecidos
-app.get('/api/garagem/servicos-oferecidos', (req, res) => {
-    console.log("[Servidor] Rota /api/garagem/servicos-oferecidos acessada.");
-    res.json(servicosOferecidos);
-});
-
-// Rota de Viagens Populares
-app.get('/api/viagens-populares', (req, res) => {
-    console.log("[Servidor] Rota /api/viagens-populares acessada.");
-    res.json(destinosPopulares);
-});
-
-// Rota do Clima
+// Rota do Clima (que chama uma API externa)
 app.get('/clima', async (req, res) => {
     const cidade = req.query.cidade;
     const tipoRequisicao = req.query.tipo;
+    const apiKey = process.env.OPENWEATHER_API_KEY;
 
-    if (!apiKey) {
-        return res.status(500).json({ error: 'Chave da API não configurada.' });
-    }
+    if (!apiKey) return res.status(500).json({ error: 'Chave da API de clima não configurada no servidor.' });
 
-    let url;
-    if (tipoRequisicao === 'forecast') {
-        url = `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(cidade)}&appid=${apiKey}&units=metric&lang=pt_br`;
-    } else {
-        url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(cidade)}&appid=${apiKey}&units=metric&lang=pt_br`;
-    }
+    const url = tipoRequisicao === 'forecast'
+        ? `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(cidade)}&appid=${apiKey}&units=metric&lang=pt_br`
+        : `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(cidade)}&appid=${apiKey}&units=metric&lang=pt_br`;
 
     try {
         const response = await axios.get(url);
@@ -182,7 +195,12 @@ app.get('/clima', async (req, res) => {
 });
 
 
-// 3. Inicia o servidor
-app.listen(PORT, () => {
-    console.log(`Servidor rodando em http://localhost:${PORT}`);
+// --- INICIALIZAÇÃO DO SERVIDOR ---
+
+// Chama a função para conectar ao banco de dados e, APENAS SE a conexão for bem-sucedida,
+// inicia o servidor Express para ouvir as requisições na porta definida.
+connectDB().then(() => {
+    app.listen(PORT, () => {
+        console.log(`Servidor rodando! Acesse sua aplicação em: http://localhost:${PORT}`);
+    });
 });

@@ -9,6 +9,7 @@
  */
 async function carregarServicosOferecidos() {
     console.log("[Serviços] Tentando carregar serviços oferecidos...");
+    // 1. Garante que está pegando o elemento HTML correto
     const listaServicosDiv = document.getElementById('lista-servicos');
     if (!listaServicosDiv) {
         console.error("[Serviços] Elemento 'lista-servicos' não encontrado no HTML.");
@@ -16,22 +17,31 @@ async function carregarServicosOferecidos() {
     }
 
     try {
+        // 2. Faz a chamada para a API no seu servidor local
         const response = await fetch('http://localhost:3000/api/garagem/servicos-oferecidos');
+
+        // 3. Verifica se a resposta da rede foi bem-sucedida
         if (!response.ok) {
-            throw new Error(`Erro na API de serviços: ${response.statusText}`);
+            // Se o status for 404, 500, etc., lança um erro
+            throw new Error(`Erro na API de serviços: ${response.statusText} (Status: ${response.status})`);
         }
         const servicos = await response.json();
 
-        listaServicosDiv.innerHTML = ''; // Limpa a mensagem de "carregando"
+        // Limpa a mensagem de "carregando"
+        listaServicosDiv.innerHTML = ''; 
 
+        // 4. Verifica se o array de serviços retornado está vazio
         if (servicos.length === 0) {
-            listaServicosDiv.innerHTML = '<p>Nenhum serviço oferecido no momento.</p>';
+            listaServicosDiv.innerHTML = '<p>Nenhum serviço oferecido foi encontrado no banco de dados.</p>';
+            console.warn("[Serviços] A API retornou uma lista vazia.");
             return;
         }
 
+        // 5. Itera sobre cada serviço e cria o HTML para ele
         servicos.forEach(servico => {
             const card = document.createElement('div');
             card.className = 'servico-card'; // Classe para estilização
+            // Use os campos do seu documento no DB: 'nome' e 'descricao'
             card.innerHTML = `
                 <h3>${servico.nome}</h3>
                 <p>${servico.descricao}</p>
@@ -41,12 +51,10 @@ async function carregarServicosOferecidos() {
         console.log("[Serviços] Serviços carregados e exibidos com sucesso.");
 
     } catch (error) {
-        console.error("Erro ao carregar serviços:", error);
-        listaServicosDiv.innerHTML = '<p style="color: red;">Não foi possível carregar os serviços. Verifique a conexão com o servidor.</p>';
+        console.error("Erro CRÍTICO ao carregar serviços:", error);
+        listaServicosDiv.innerHTML = '<p style="color: red;">Não foi possível carregar os serviços. Verifique a conexão com o servidor e o console para mais detalhes.</p>';
     }
 }
-
-
 /**
  * Busca e exibe destinos de viagem populares da API do nosso servidor.
  */
