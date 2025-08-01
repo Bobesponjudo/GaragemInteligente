@@ -1,24 +1,28 @@
 // ===================================================================
-// server.js (VERSÃO COMPLETA E CORRIGIDA)
+// server.js (VERSÃO COMPLETA E CORRIGIDA COM CRUD DE VEÍCULOS)
 // ===================================================================
 
 // Carrega as variáveis de ambiente do arquivo .env. Deve ser a primeira linha!
 require('dotenv').config();
 
 const express = require('express');
-const axios =require('axios');
+const axios = require('axios');
 const path = require("path");
 const fs = require('fs');
 const cors = require('cors');
-// Importa o cliente do MongoDB para conectar ao banco de dados
-const { MongoClient } = require('mongodb');
+// Importa o Mongoose para modelagem de dados do MongoDB
+const mongoose = require('mongoose');
+
+// Importa os modelos que criamos. Usamos require para consistência.
+const Veiculo = require('./models/Veiculo');
+const Servico = require('./models/Servico');
+const Problema = require('./models/Problema');
 
 
-// --- CONFIGURAÇÃO DO SERVIDOR E BANCO DE DADOS ---
+// --- CONFIGURAÇÃO DO SERVIDOR ---
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-app.use(express.static(path.join(__dirname, 'public'))); // Serve arquivos estáticos da pasta 'public'
 // Pega a string de conexão (URI) do arquivo .env
 const mongoURI = process.env.MONGODB_URI;
 
@@ -29,35 +33,33 @@ if (!mongoURI) {
     process.exit(1); // Encerra a aplicação
 }
 
-// Cria uma nova instância do cliente do MongoDB
-const client = new MongoClient(mongoURI);
+// --- MIDDLEWARES (Configurações do Express) ---
 
-// Variável global para manter a referência da conexão com o banco de dados
-let db;
-
+app.use(cors());
+app.use(express.json()); // Habilita o Express para interpretar corpos de requisição em formato JSON
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(__dirname));
+
+
 // --- LÓGICA DE PERSISTÊNCIA DAS DICAS (usando arquivo JSON) ---
 
 const DICAS_FILE_PATH = path.join(__dirname, 'dicas.json');
 
-// Função para carregar as dicas do arquivo JSON
 const carregarDicas = () => {
     try {
         if (fs.existsSync(DICAS_FILE_PATH)) {
             const data = fs.readFileSync(DICAS_FILE_PATH, 'utf-8');
             return JSON.parse(data);
         }
-        return []; // Retorna array vazio se o arquivo não existir
+        return [];
     } catch (error) {
         console.error("Erro ao carregar o arquivo de dicas:", error);
-        return []; // Retorna array vazio em caso de erro
+        return [];
     }
 };
 
-// Função para salvar as dicas no arquivo JSON
 const salvarDicas = (dicas) => {
     try {
-        // Usa null, 2 para formatar o JSON de forma legível
         fs.writeFileSync(DICAS_FILE_PATH, JSON.stringify(dicas, null, 2), 'utf-8');
         console.log("[Servidor] Dicas salvas no arquivo com sucesso.");
     } catch (error) {
@@ -65,41 +67,28 @@ const salvarDicas = (dicas) => {
     }
 };
 
-// Carrega as dicas na inicialização do servidor
 let dicasVeiculos = carregarDicas();
 
 
-// --- MIDDLEWARES (Configurações do Express) ---
+// --- FUNÇÃO PARA CONECTAR AO MONGODB USANDO MONGOOSE ---
 
-// Habilita CORS para permitir que o frontend (rodando em outra porta/domínio) acesse a API
-app.use(cors());
-// Habilita o Express para interpretar corpos de requisição em formato JSON
-app.use(express.json());
-// Serve os arquivos estáticos (HTML, CSS, JS do frontend) da pasta raiz do projeto
-app.use(express.static(__dirname));
-
-
-// --- FUNÇÃO PARA CONECTAR AO MONGODB ---
-
-// Esta função assíncrona tenta se conectar ao MongoDB Atlas
 async function connectDB() {
     try {
-        await client.connect();
-        db = client.db();
-        console.log(`Conectado com sucesso ao MongoDB: ${db.databaseName}!`);
+        await mongoose.connect(mongoURI);
+        console.log("Conectado com sucesso ao MongoDB via Mongoose!");
     } catch (err) {
-        console.error("Falha grave ao conectar ao MongoDB.", err);
+        console.error("Falha grave ao conectar ao MongoDB com Mongoose.", err);
         process.exit(1);
     }
 }
 
+
 // --- ROTAS DA API ---
 
-// Rota para buscar os serviços oferecidos (agora do MongoDB)
+// Rota para buscar os serviços oferecidos
 app.get('/api/garagem/servicos-oferecidos', async (req, res) => {
     try {
-        // Busca todos os documentos na coleção 'servicos' e os transforma em um array
-        const servicos = await db.collection('servicos').find({}).toArray();
+        const servicos = await Servico.find({});
         res.json(servicos);
     } catch (error) {
         console.error("Erro ao buscar serviços no MongoDB:", error);
@@ -107,14 +96,69 @@ app.get('/api/garagem/servicos-oferecidos', async (req, res) => {
     }
 });
 
-// Rota para buscar os problemas de diagnóstico (agora do MongoDB)
+// Rota para buscar os problemas de diagnóstico
 app.get('/api/garagem/diagnostico', async (req, res) => {
     try {
-        const problemas = await db.collection('problemas').find({}).toArray();
+        const problemas = await Problema.find({});
         res.json(problemas);
     } catch (error) {
         console.error("Erro ao buscar problemas de diagnóstico no MongoDB:", error);
         res.status(500).json({ message: "Erro interno ao buscar diagnósticos." });
+    }
+});
+
+
+// --- ROTAS CRUD PARA VEICULOS USANDO MONGOOSE ---
+
+/**
+ * @route   POST /api/veiculos
+ * @desc    Criar um novo veículo
+ * @access  Public
+ */
+app.post('/api/veiculos', async (req, res) => {
+    try {
+        // O corpo da requisição já contém os dados do novo veículo
+        const novoVeiculoData = req.body;
+
+        // O Mongoose aplicará as validações do Schema aqui ao tentar criar
+        const veiculoCriado = await Veiculo.create(novoVeiculoData);
+        
+        console.log('[Servidor] Veículo criado com sucesso:', veiculoCriado);
+        // Retorna o veículo criado com o _id do DB e status 201 (Created)
+        res.status(201).json(veiculoCriado); 
+
+    } catch (error) {
+        console.error("[Servidor] Erro ao criar veículo:", error);
+        
+        // Tratamento de erros de validação e duplicidade do Mongoose
+        if (error.code === 11000) { // Erro de placa duplicada (definido como 'unique' no Schema)
+            return res.status(409).json({ error: 'Veículo com esta placa já existe.' }); // 409 Conflict
+        }
+        if (error.name === 'ValidationError') { // Erros de campos obrigatórios, min/max, etc.
+             const messages = Object.values(error.errors).map(val => val.message);
+             return res.status(400).json({ error: messages.join(' ') }); // 400 Bad Request
+        }
+        // Para outros erros inesperados
+        res.status(500).json({ error: 'Erro interno ao criar veículo.' });
+    }
+});
+
+/**
+ * @route   GET /api/veiculos
+ * @desc    Ler (buscar) todos os veículos
+ * @access  Public
+ */
+app.get('/api/veiculos', async (req, res) => {
+    try {
+        // .find() sem argumentos busca todos os documentos na coleção
+        const todosOsVeiculos = await Veiculo.find(); 
+        
+        console.log('[Servidor] Buscando todos os veículos do DB.');
+        res.json(todosOsVeiculos);
+
+    } catch (error) {
+        console.error("[Servidor] Erro ao buscar veículos:", error);
+        res.status(500).json({ error: 'Erro interno ao buscar veículos.' });
     }
 });
 

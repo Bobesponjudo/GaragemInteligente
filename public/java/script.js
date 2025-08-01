@@ -1,15 +1,56 @@
-// script.js (CORRIGIDO E COMPLETO)
+// script.js (CORRIGIDO E COMPLETO COM API)
 
 // =============================================================================
 // === FUNÇÕES GLOBAIS DA APLICAÇÃO ============================================
 // =============================================================================
 
 /**
+ * NOVA FUNÇÃO: Busca veículos da API e os exibe na tela.
+ */
+async function fetchAndDisplayVehicles() {
+    console.log("[API] Buscando veículos do banco de dados...");
+    const listContainer = document.getElementById('db-vehicle-list');
+    if (!listContainer) return;
+
+    try {
+        const response = await fetch('http://localhost:3000/api/veiculos');
+        if (!response.ok) {
+            throw new Error(`Erro de rede: ${response.statusText}`);
+        }
+        const vehicles = await response.json();
+
+        listContainer.innerHTML = ''; // Limpa a lista atual
+
+        if (vehicles.length === 0) {
+            listContainer.innerHTML = '<p>Nenhum veículo registrado no banco de dados ainda.</p>';
+            return;
+        }
+
+        vehicles.forEach(vehicle => {
+            const card = document.createElement('div');
+            card.className = 'db-vehicle-card'; // Classe para estilização
+            card.innerHTML = `
+                <h4>${vehicle.marca} ${vehicle.modelo} (${vehicle.ano})</h4>
+                <p><strong>Placa:</strong> ${vehicle.placa}</p>
+                <p><strong>Cor:</strong> ${vehicle.cor || 'Não especificada'}</p>
+                <p><small>ID: ${vehicle._id}</small></p>
+            `;
+            listContainer.appendChild(card);
+        });
+        console.log("[API] Veículos exibidos com sucesso.");
+
+    } catch (error) {
+        console.error("Erro CRÍTICO ao buscar veículos da API:", error);
+        listContainer.innerHTML = '<p class="error-message">Falha ao carregar veículos. Verifique se o servidor está online.</p>';
+    }
+}
+
+
+/**
  * Busca e exibe os serviços oferecidos pela garagem.
  */
 async function carregarServicosOferecidos() {
     console.log("[Serviços] Tentando carregar serviços oferecidos...");
-    // 1. Garante que está pegando o elemento HTML correto
     const listaServicosDiv = document.getElementById('lista-servicos');
     if (!listaServicosDiv) {
         console.error("[Serviços] Elemento 'lista-servicos' não encontrado no HTML.");
@@ -17,31 +58,22 @@ async function carregarServicosOferecidos() {
     }
 
     try {
-        // 2. Faz a chamada para a API no seu servidor local
         const response = await fetch('http://localhost:3000/api/garagem/servicos-oferecidos');
-
-        // 3. Verifica se a resposta da rede foi bem-sucedida
         if (!response.ok) {
-            // Se o status for 404, 500, etc., lança um erro
             throw new Error(`Erro na API de serviços: ${response.statusText} (Status: ${response.status})`);
         }
         const servicos = await response.json();
 
-        // Limpa a mensagem de "carregando"
         listaServicosDiv.innerHTML = ''; 
 
-        // 4. Verifica se o array de serviços retornado está vazio
         if (servicos.length === 0) {
             listaServicosDiv.innerHTML = '<p>Nenhum serviço oferecido foi encontrado no banco de dados.</p>';
-            console.warn("[Serviços] A API retornou uma lista vazia.");
             return;
         }
 
-        // 5. Itera sobre cada serviço e cria o HTML para ele
         servicos.forEach(servico => {
             const card = document.createElement('div');
-            card.className = 'servico-card'; // Classe para estilização
-            // Use os campos do seu documento no DB: 'nome' e 'descricao'
+            card.className = 'servico-card';
             card.innerHTML = `
                 <h3>${servico.nome}</h3>
                 <p>${servico.descricao}</p>
@@ -52,7 +84,7 @@ async function carregarServicosOferecidos() {
 
     } catch (error) {
         console.error("Erro CRÍTICO ao carregar serviços:", error);
-        listaServicosDiv.innerHTML = '<p style="color: red;">Não foi possível carregar os serviços. Verifique a conexão com o servidor e o console para mais detalhes.</p>';
+        listaServicosDiv.innerHTML = '<p class="error-message">Não foi possível carregar os serviços. Verifique a conexão com o servidor.</p>';
     }
 }
 /**
@@ -73,7 +105,7 @@ async function carregarViagensPopulares() {
         }
         const viagens = await response.json();
 
-        listaViagensDiv.innerHTML = ''; // Limpa a mensagem de "carregando"
+        listaViagensDiv.innerHTML = ''; 
 
         if (viagens.length === 0) {
             listaViagensDiv.innerHTML = '<p>Nenhum destino popular encontrado no momento.</p>';
@@ -83,7 +115,6 @@ async function carregarViagensPopulares() {
         viagens.forEach(viagem => {
             const card = document.createElement('div');
             card.className = 'viagem-card';
-
             card.innerHTML = `
                 <img src="${viagem.imagem_url}" alt="Foto de ${viagem.destino}">
                 <h3>${viagem.destino}</h3>
@@ -96,7 +127,7 @@ async function carregarViagensPopulares() {
 
     } catch (error) {
         console.error("Erro ao carregar viagens populares:", error);
-        listaViagensDiv.innerHTML = '<p style="color: red;">Não foi possível carregar os destinos. Verifique a conexão com o servidor e tente novamente.</p>';
+        listaViagensDiv.innerHTML = '<p class="error-message">Não foi possível carregar os destinos. Verifique a conexão com o servidor.</p>';
     }
 }
 
@@ -105,19 +136,60 @@ async function carregarViagensPopulares() {
 // === INICIALIZAÇÃO ===========================================================
 // =============================================================================
 
-// Cria a instância da Garagem (o construtor já chama carregarGaragem)
+// Cria a instância da Garagem (o construtor já chama carregarGaragem para o simulador)
 const garagem = new Garagem();
-console.log('[script.js] Instância da Garagem criada:', typeof garagem);
 
-window.onload = () => {
-    console.log('[script.js] window.onload iniciado. Verificando garagem:', typeof garagem);
-    if (!garagem) {
-        console.error("[script.js] ERRO FATAL DENTRO DE window.onload: 'garagem' ainda é undefined!");
-        alert("Erro crítico ao inicializar a aplicação. Verifique o console.");
-        return;
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('[script.js] DOMContentLoaded. Aplicação iniciada.');
+    
+    // --- LÓGICA NOVA: INTERAÇÃO COM API DE VEÍCULOS ---
+    const dbForm = document.getElementById('form-add-db-vehicle');
+    const errorDiv = document.getElementById('db-form-error');
+
+    if (dbForm) {
+        dbForm.addEventListener('submit', async (event) => {
+            event.preventDefault(); // Previne o recarregamento da página
+            errorDiv.textContent = ''; // Limpa erros antigos
+
+            const novoVeiculo = {
+                placa: document.getElementById('db-placa').value,
+                marca: document.getElementById('db-marca').value,
+                modelo: document.getElementById('db-modelo').value,
+                ano: document.getElementById('db-ano').value,
+                cor: document.getElementById('db-cor').value,
+            };
+
+            try {
+                const response = await fetch('http://localhost:3000/api/veiculos', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(novoVeiculo),
+                });
+                
+                // Se a resposta foi bem-sucedida (ex: 201 Created)
+                if (response.ok) {
+                    console.log("[API] Veículo criado com sucesso!");
+                    dbForm.reset(); // Limpa o formulário
+                    // MELHORIA CHAVE: Atualiza a lista na tela automaticamente
+                    await fetchAndDisplayVehicles(); 
+                } else {
+                    // Se o servidor retornou um erro (ex: 400, 409)
+                    const errorData = await response.json();
+                    console.error("[API] Erro do servidor ao criar veículo:", errorData);
+                    errorDiv.textContent = `Erro: ${errorData.error || 'Falha ao salvar.'}`;
+                }
+
+            } catch (error) {
+                console.error("Erro CRÍTICO na requisição POST:", error);
+                errorDiv.textContent = "Erro de conexão. Não foi possível contatar o servidor.";
+            }
+        });
     }
 
     // --- CARREGA DADOS DAS APIS ---
+    fetchAndDisplayVehicles(); // Carga inicial dos veículos do DB
     carregarViagensPopulares();
     carregarServicosOferecidos();
 
@@ -148,7 +220,7 @@ window.onload = () => {
         garagem.carregarEExibirClima(cityInput.value.trim());
 
     } else {
-        console.warn("Elementos para busca de clima (cityInput, searchWeatherBtn ou weather-info) não encontrados.");
+        console.warn("Elementos para busca de clima não encontrados.");
     }
     // --- FIM: Lógica para o seletor de cidade do clima ---
 
@@ -168,7 +240,6 @@ window.onload = () => {
                 } else if (!cidade) {
                     alert("Por favor, digite o nome de uma cidade para ver a previsão.");
                     cityInput.focus();
-                    forecastInfoDiv.innerHTML = `Digite uma cidade e selecione o número de dias para a previsão.`;
                 }
             });
         });
@@ -180,7 +251,7 @@ window.onload = () => {
             }
         }, 1000);
     } else {
-        console.warn("Elementos para botões de previsão (forecast-days-btn, cityInput ou forecast-info) não encontrados.");
+        console.warn("Elementos para botões de previsão não encontrados.");
     }
     // --- FIM: Lógica para botões de previsão de N dias ---
 
@@ -191,7 +262,6 @@ window.onload = () => {
     const closeDicaModal = document.getElementById('closeDicaModal');
     const dicaForm = document.getElementById('dicaForm');
 
-    // Função para abrir o modal em modo 'add' ou 'edit'
     const abrirModalDica = (modo, dados) => {
         const modalTitle = document.getElementById('dicaModalTitle');
         const formModo = document.getElementById('dicaFormModo');
@@ -206,7 +276,7 @@ window.onload = () => {
             modalTitle.textContent = `Editar Dica para ${dados.modelo}`;
             formTexto.value = dados.dica;
             formAutor.value = dados.autor;
-        } else { // modo 'add'
+        } else {
             modalTitle.textContent = `Adicionar Dica para ${dados.modelo}`;
             formTexto.value = '';
             formAutor.value = '';
@@ -214,26 +284,21 @@ window.onload = () => {
         dicaModal.style.display = 'block';
     };
 
-    // Função para fechar o modal
     const fecharModalDica = () => {
         dicaModal.style.display = 'none';
         dicaForm.reset();
     };
     
-    // Evento no botão de busca
     buscarDicaBtn.addEventListener('click', async () => {
         const modelo = dicaModeloInput.value.trim();
-        if (!modelo) {
-            alert("Por favor, digite um modelo de veículo.");
-            return;
-        }
+        if (!modelo) return;
 
         try {
             const response = await fetch(`http://localhost:3000/api/dicas/${encodeURIComponent(modelo)}`);
-            if (response.ok) { // Encontrou dica (status 200)
+            if (response.ok) {
                 const dica = await response.json();
                 abrirModalDica('edit', dica);
-            } else if (response.status === 404) { // Não encontrou
+            } else if (response.status === 404) {
                 if (confirm(`Nenhuma dica encontrada para "${modelo}". Deseja adicionar uma?`)) {
                     abrirModalDica('add', { modelo: modelo });
                 }
@@ -242,11 +307,9 @@ window.onload = () => {
             }
         } catch (error) {
             console.error("Erro ao buscar dica:", error);
-            alert("Não foi possível buscar a dica. Verifique a conexão com o servidor.");
         }
     });
 
-    // Evento para salvar o formulário do modal
     dicaForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         
@@ -279,7 +342,6 @@ window.onload = () => {
         }
     });
 
-    // Eventos para fechar o modal
     closeDicaModal.addEventListener('click', fecharModalDica);
     window.addEventListener('click', (event) => {
         if (event.target === dicaModal) {
@@ -289,17 +351,16 @@ window.onload = () => {
     // --- FIM: LÓGICA PARA DICAS DA COMUNIDADE ---
 
 
+    // --- Lógica antiga do simulador local ---
     if (Object.keys(garagem.veiculos).length === 0) {
-        console.log("Garagem vazia. Criando veículos padrão...");
+        console.log("Garagem local vazia. Criando veículos padrão do simulador...");
         garagem.criarCarro();
         garagem.criarMoto();
         garagem.criarCarroEsportivo();
         garagem.criarCaminhao();
-        garagem.atualizarListaAgendamentos();
-        garagem.exibirInformacoes('meuCarro');
     } else {
-        console.log("Veículos carregados do localStorage. Atualizando UI completa.");
-        garagem.atualizarUICompleta();
+        console.log("Veículos do simulador carregados do localStorage. Atualizando UI.");
     }
+    garagem.atualizarUICompleta();
     garagem.verificarAgendamentosProximos();
-};
+});``

@@ -12,6 +12,40 @@
 <body>
     <main>
         <h1>Garagem Interativa</h1> <!-- Título Mantido -->
+        
+        <!-- =================================================================== -->
+        <!-- ============== NOVA SEÇÃO PARA VEÍCULOS DO BANCO DE DADOS ========= -->
+        <!-- =================================================================== -->
+        <section id="db-vehicles-container" class="container">
+            <h2>Veículos no Banco de Dados (via API)</h2>
+            
+            <!-- Formulário para Adicionar um Novo Veículo -->
+            <div class="form-db-container">
+                <h3>Adicionar Novo Veículo</h3>
+                <form id="form-add-db-vehicle">
+                    <input type="text" id="db-placa" placeholder="Placa (Ex: ABC1D23)" required>
+                    <input type="text" id="db-marca" placeholder="Marca (Ex: Honda)" required>
+                    <input type="text" id="db-modelo" placeholder="Modelo (Ex: Civic)" required>
+                    <input type="number" id="db-ano" placeholder="Ano (Ex: 2021)" required>
+                    <input type="text" id="db-cor" placeholder="Cor (Ex: Preto)">
+                    <button type="submit">Salvar no DB</button>
+                </form>
+                <div id="db-form-error" class="form-error-message"></div>
+            </div>
+
+            <hr>
+
+            <!-- Lista de Veículos do Banco de Dados -->
+            <h3>Garagem Registrada</h3>
+            <div id="db-vehicle-list">
+                <p>Carregando veículos do banco de dados...</p>
+            </div>
+        </section>
+        <hr>
+        <!-- =================================================================== -->
+        <!-- ================== FIM DA NOVA SEÇÃO ============================== -->
+        <!-- =================================================================== -->
+
         <!-- SEÇÃO PARA O CLIMA -->
         <section id="weather-container" class="container" style="text-align: center; margin-bottom: 20px;">
             <h2>Clima Atual</h2>
@@ -66,7 +100,8 @@
             </div>
         </section>
         <hr>
-
+        
+        <h2>Simulador de Veículos (Lógica Local)</h2>
         <!-- Seção Carro -->
         <section class="container">
             <h2>Carro</h2>

@@ -563,3 +563,92 @@ div>input[type="number"] {
 #diagnosticoResultado {
     border-top: 1px dashed #ccc;
 }
+
+/* =================================================================== */
+/* === ESTILOS PARA LISTA DE VEÍCULOS DO BANCO DE DADOS (NOVO) ===== */
+/* =================================================================== */
+
+/* 1. O Container da Lista (o "pai" de todos os cartões) */
+#db-vehicle-list {
+    display: flex;         /* ATIVA O FLEXBOX: O segredo para alinhar itens lado a lado. */
+    flex-wrap: wrap;       /* Permite que os itens quebrem para a próxima linha se não houver espaço. */
+    justify-content: center; /* Centraliza os cartões no container. */
+    gap: 20px;             /* Cria um espaço consistente de 20px entre cada cartão. */
+    margin-top: 20px;      /* Adiciona um espaço acima da lista. */
+}
+
+/* 2. O Cartão Individual de Cada Veículo */
+.db-vehicle-card {
+    background-color: #eaf6ff; /* COR DE FUNDO: Um azul bem claro, como solicitado. */
+    border: 1px solid #cce7ff;   /* Uma borda sutil para definir o cartão. */
+    border-radius: 8px;          /* Cantos arredondados. */
+    padding: 15px 20px;          /* Espaçamento interno para o conteúdo não ficar colado nas bordas. */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08); /* Uma sombra leve para dar profundidade. */
+    text-align: left;            /* Alinha o texto do cartão à esquerda para melhor leitura. */
+    
+    /* Define o tamanho dos cartões */
+    flex-basis: 280px;  /* Cada cartão tentará ter uma largura base de 280px. */
+    flex-grow: 1;       /* Permite que o cartão cresça se houver espaço extra na linha. */
+    max-width: 350px;   /* Impede que o cartão fique excessivamente largo em telas grandes. */
+    
+    transition: transform 0.2s ease, box-shadow 0.2s ease; /* Animação suave. */
+}
+
+/* Efeito ao passar o mouse sobre o cartão */
+.db-vehicle-card:hover {
+    transform: translateY(-5px); /* Levanta o cartão levemente. */
+    box-shadow: 0 4px 10px rgba(30, 135, 233, 0.15); /* Aumenta a sombra. */
+}
+
+/* Estiliza o título (Marca e Modelo) dentro do cartão */
+.db-vehicle-card h4 {
+    color: #1e87e9;
+    margin-top: 0;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #d1e9ff;
+    padding-bottom: 8px;
+}
+
+/* Estiliza os parágrafos dentro do cartão */
+.db-vehicle-card p {
+    margin: 4px 0;
+    font-size: 0.95em;
+    color: #333;
+}
+
+.db-vehicle-card p small {
+    color: #888;
+    font-size: 0.8em;
+}
+
+/* Estiliza a mensagem de erro no formulário */
+.form-error-message {
+    color: #d93025;
+    font-weight: bold;
+    margin-top: 10px;
+    min-height: 1.2em;
+}
+
+/* Container do formulário de adição */
+.form-db-container {
+    background-color: #f8fdff;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #e0f1ff;
+}
+
+.form-db-container h3 {
+    margin-top: 0;
+    text-align: center;
+}
+
+#form-add-db-vehicle {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+#form-add-db-vehicle input {
+    flex-grow: 1; /* Faz os inputs ocuparem o espaço */
+}
