@@ -117,28 +117,20 @@ app.get('/api/garagem/diagnostico', async (req, res) => {
  */
 app.post('/api/veiculos', async (req, res) => {
     try {
-        // O corpo da requisição já contém os dados do novo veículo
         const novoVeiculoData = req.body;
-
-        // O Mongoose aplicará as validações do Schema aqui ao tentar criar
         const veiculoCriado = await Veiculo.create(novoVeiculoData);
-        
         console.log('[Servidor] Veículo criado com sucesso:', veiculoCriado);
-        // Retorna o veículo criado com o _id do DB e status 201 (Created)
         res.status(201).json(veiculoCriado); 
 
     } catch (error) {
         console.error("[Servidor] Erro ao criar veículo:", error);
-        
-        // Tratamento de erros de validação e duplicidade do Mongoose
-        if (error.code === 11000) { // Erro de placa duplicada (definido como 'unique' no Schema)
-            return res.status(409).json({ error: 'Veículo com esta placa já existe.' }); // 409 Conflict
+        if (error.code === 11000) {
+            return res.status(409).json({ error: 'Veículo com esta placa já existe.' });
         }
-        if (error.name === 'ValidationError') { // Erros de campos obrigatórios, min/max, etc.
+        if (error.name === 'ValidationError') {
              const messages = Object.values(error.errors).map(val => val.message);
-             return res.status(400).json({ error: messages.join(' ') }); // 400 Bad Request
+             return res.status(400).json({ error: messages.join(' ') });
         }
-        // Para outros erros inesperados
         res.status(500).json({ error: 'Erro interno ao criar veículo.' });
     }
 });
@@ -150,15 +142,106 @@ app.post('/api/veiculos', async (req, res) => {
  */
 app.get('/api/veiculos', async (req, res) => {
     try {
-        // .find() sem argumentos busca todos os documentos na coleção
         const todosOsVeiculos = await Veiculo.find(); 
-        
         console.log('[Servidor] Buscando todos os veículos do DB.');
         res.json(todosOsVeiculos);
 
     } catch (error) {
         console.error("[Servidor] Erro ao buscar veículos:", error);
         res.status(500).json({ error: 'Erro interno ao buscar veículos.' });
+    }
+});
+
+/**
+ * @route   GET /api/veiculos/:id
+ * @desc    Ler (buscar) um único veículo pelo seu ID
+ * @access  Public
+ * @nova_rota
+ */
+app.get('/api/veiculos/:id', async (req, res) => {
+    try {
+        const veiculo = await Veiculo.findById(req.params.id);
+        if (!veiculo) {
+            return res.status(404).json({ error: 'Veículo não encontrado.' });
+        }
+        console.log(`[Servidor] Veículo com ID ${req.params.id} encontrado.`);
+        res.json(veiculo);
+    } catch (error) {
+        console.error("[Servidor] Erro ao buscar veículo por ID:", error);
+        // Se o ID for inválido (malformado), o Mongoose gera um CastError
+        if (error.name === 'CastError') {
+            return res.status(400).json({ error: 'ID de veículo inválido.' });
+        }
+        res.status(500).json({ error: 'Erro interno ao buscar veículo.' });
+    }
+});
+
+
+/**
+ * @route   PUT /api/veiculos/:id
+ * @desc    Atualizar um veículo existente
+ * @access  Public
+ * @nova_rota
+ */
+app.put('/api/veiculos/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const dadosAtualizados = req.body;
+
+        const veiculoAtualizado = await Veiculo.findByIdAndUpdate(
+            id, 
+            dadosAtualizados, 
+            { 
+                new: true, // Retorna o documento modificado
+                runValidators: true // Roda as validações do Schema na atualização
+            }
+        );
+
+        if (!veiculoAtualizado) {
+            return res.status(404).json({ error: 'Veículo não encontrado para atualização.' });
+        }
+
+        console.log('[Servidor] Veículo atualizado com sucesso:', veiculoAtualizado);
+        res.json(veiculoAtualizado);
+
+    } catch (error) {
+        console.error("[Servidor] Erro ao atualizar veículo:", error);
+        if (error.name === 'ValidationError') {
+             const messages = Object.values(error.errors).map(val => val.message);
+             return res.status(400).json({ error: messages.join(' ') });
+        }
+        if (error.name === 'CastError') {
+            return res.status(400).json({ error: 'ID de veículo inválido.' });
+        }
+        res.status(500).json({ error: 'Erro interno ao atualizar veículo.' });
+    }
+});
+
+
+/**
+ * @route   DELETE /api/veiculos/:id
+ * @desc    Excluir um veículo
+ * @access  Public
+ * @nova_rota
+ */
+app.delete('/api/veiculos/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const veiculoExcluido = await Veiculo.findByIdAndDelete(id);
+
+        if (!veiculoExcluido) {
+            return res.status(404).json({ error: 'Veículo não encontrado para exclusão.' });
+        }
+
+        console.log('[Servidor] Veículo excluído com sucesso:', veiculoExcluido);
+        res.json({ message: `Veículo com placa ${veiculoExcluido.placa} foi excluído com sucesso.` });
+
+    } catch (error) {
+        console.error("[Servidor] Erro ao excluir veículo:", error);
+        if (error.name === 'CastError') {
+            return res.status(400).json({ error: 'ID de veículo inválido.' });
+        }
+        res.status(500).json({ error: 'Erro interno ao excluir veículo.' });
     }
 });
 

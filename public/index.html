@@ -425,6 +425,36 @@
         </div>
     </div>
 
+    <!-- NOVO: MODAL PARA EDIÇÃO DE VEÍCULO (escondido por padrão) -->
+    <div id="editVehicleModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeEditModal">×</span>
+            <h3>Editar Veículo</h3>
+            <form id="form-edit-db-vehicle">
+                <!-- Input escondido para guardar o ID do veículo -->
+                <input type="hidden" id="edit-db-id">
+                
+                <label for="edit-db-placa">Placa:</label>
+                <input type="text" id="edit-db-placa" readonly> <!-- Placa não deve ser editável -->
+
+                <label for="edit-db-marca">Marca:</label>
+                <input type="text" id="edit-db-marca" required>
+
+                <label for="edit-db-modelo">Modelo:</label>
+                <input type="text" id="edit-db-modelo" required>
+
+                <label for="edit-db-ano">Ano:</label>
+                <input type="number" id="edit-db-ano" required>
+
+                <label for="edit-db-cor">Cor:</label>
+                <input type="text" id="edit-db-cor">
+
+                <button type="submit">Salvar Alterações</button>
+            </form>
+            <div id="edit-form-error" class="form-error-message"></div>
+        </div>
+    </div>
+
     <!-- Scripts JS -->
     <script src="java/manutencao.js"></script>
     <script src="java/veiculo.js"></script>

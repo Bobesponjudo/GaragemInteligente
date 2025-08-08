@@ -1,11 +1,11 @@
-// script.js (CORRIGIDO E COMPLETO COM API)
+// script.js (CORRIGIDO E COMPLETO COM API E CRUD)
 
 // =============================================================================
 // === FUNÇÕES GLOBAIS DA APLICAÇÃO ============================================
 // =============================================================================
 
 /**
- * NOVA FUNÇÃO: Busca veículos da API e os exibe na tela.
+ * Busca veículos da API e os exibe na tela, agora com botões de ação.
  */
 async function fetchAndDisplayVehicles() {
     console.log("[API] Buscando veículos do banco de dados...");
@@ -28,12 +28,17 @@ async function fetchAndDisplayVehicles() {
 
         vehicles.forEach(vehicle => {
             const card = document.createElement('div');
-            card.className = 'db-vehicle-card'; // Classe para estilização
+            card.className = 'db-vehicle-card'; 
+            // **ALTERAÇÃO AQUI: Adicionados botões de Editar e Excluir com data-id**
             card.innerHTML = `
                 <h4>${vehicle.marca} ${vehicle.modelo} (${vehicle.ano})</h4>
                 <p><strong>Placa:</strong> ${vehicle.placa}</p>
                 <p><strong>Cor:</strong> ${vehicle.cor || 'Não especificada'}</p>
                 <p><small>ID: ${vehicle._id}</small></p>
+                <div class="db-vehicle-actions">
+                    <button class="btn-edit" data-id="${vehicle._id}">Editar</button>
+                    <button class="btn-delete" data-id="${vehicle._id}">Excluir</button>
+                </div>
             `;
             listContainer.appendChild(card);
         });
@@ -142,14 +147,14 @@ const garagem = new Garagem();
 document.addEventListener('DOMContentLoaded', () => {
     console.log('[script.js] DOMContentLoaded. Aplicação iniciada.');
     
-    // --- LÓGICA NOVA: INTERAÇÃO COM API DE VEÍCULOS ---
+    // --- LÓGICA DE INTERAÇÃO COM API DE VEÍCULOS (CREATE) ---
     const dbForm = document.getElementById('form-add-db-vehicle');
-    const errorDiv = document.getElementById('db-form-error');
+    const dbErrorDiv = document.getElementById('db-form-error');
 
     if (dbForm) {
         dbForm.addEventListener('submit', async (event) => {
-            event.preventDefault(); // Previne o recarregamento da página
-            errorDiv.textContent = ''; // Limpa erros antigos
+            event.preventDefault(); 
+            dbErrorDiv.textContent = ''; 
 
             const novoVeiculo = {
                 placa: document.getElementById('db-placa').value,
@@ -162,38 +167,148 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const response = await fetch('http://localhost:3000/api/veiculos', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(novoVeiculo),
                 });
                 
-                // Se a resposta foi bem-sucedida (ex: 201 Created)
                 if (response.ok) {
                     console.log("[API] Veículo criado com sucesso!");
-                    dbForm.reset(); // Limpa o formulário
-                    // MELHORIA CHAVE: Atualiza a lista na tela automaticamente
+                    dbForm.reset(); 
                     await fetchAndDisplayVehicles(); 
                 } else {
-                    // Se o servidor retornou um erro (ex: 400, 409)
                     const errorData = await response.json();
                     console.error("[API] Erro do servidor ao criar veículo:", errorData);
-                    errorDiv.textContent = `Erro: ${errorData.error || 'Falha ao salvar.'}`;
+                    dbErrorDiv.textContent = `Erro: ${errorData.error || 'Falha ao salvar.'}`;
                 }
-
             } catch (error) {
                 console.error("Erro CRÍTICO na requisição POST:", error);
-                errorDiv.textContent = "Erro de conexão. Não foi possível contatar o servidor.";
+                dbErrorDiv.textContent = "Erro de conexão. Não foi possível contatar o servidor.";
+            }
+        });
+    }
+
+    // --- NOVA LÓGICA PARA UPDATE E DELETE (usando delegação de eventos) ---
+    const vehicleListContainer = document.getElementById('db-vehicle-list');
+    if(vehicleListContainer) {
+        vehicleListContainer.addEventListener('click', async (event) => {
+            const target = event.target;
+
+            // --- Lógica de EXCLUSÃO ---
+            if (target.classList.contains('btn-delete')) {
+                const vehicleId = target.dataset.id;
+                if (confirm(`Tem certeza que deseja excluir o veículo com ID: ${vehicleId}?`)) {
+                    try {
+                        const response = await fetch(`http://localhost:3000/api/veiculos/${vehicleId}`, {
+                            method: 'DELETE'
+                        });
+
+                        if (response.ok) {
+                            alert('Veículo excluído com sucesso!');
+                            await fetchAndDisplayVehicles(); // Atualiza a lista
+                        } else {
+                            const errorData = await response.json();
+                            throw new Error(errorData.error || 'Falha ao excluir o veículo.');
+                        }
+                    } catch (error) {
+                        console.error("Erro ao excluir veículo:", error);
+                        alert(`Erro: ${error.message}`);
+                    }
+                }
+            }
+
+            // --- Lógica de EDIÇÃO (abrir modal) ---
+            if (target.classList.contains('btn-edit')) {
+                const vehicleId = target.dataset.id;
+                const modal = document.getElementById('editVehicleModal');
+                const errorDiv = document.getElementById('edit-form-error');
+                errorDiv.textContent = ''; // Limpa erros antigos
+
+                try {
+                    // 1. Buscar os dados atuais do veículo
+                    const response = await fetch(`http://localhost:3000/api/veiculos/${vehicleId}`);
+                    if (!response.ok) throw new Error('Não foi possível carregar os dados do veículo para edição.');
+                    
+                    const vehicle = await response.json();
+
+                    // 2. Preencher o formulário no modal
+                    document.getElementById('edit-db-id').value = vehicle._id;
+                    document.getElementById('edit-db-placa').value = vehicle.placa;
+                    document.getElementById('edit-db-marca').value = vehicle.marca;
+                    document.getElementById('edit-db-modelo').value = vehicle.modelo;
+                    document.getElementById('edit-db-ano').value = vehicle.ano;
+                    document.getElementById('edit-db-cor').value = vehicle.cor;
+
+                    // 3. Exibir o modal
+                    modal.style.display = 'block';
+
+                } catch (error) {
+                    console.error("Erro ao preparar edição:", error);
+                    alert(`Erro: ${error.message}`);
+                }
+            }
+        });
+    }
+
+    // --- NOVA LÓGICA: Manipulação do Modal de Edição ---
+    const editModal = document.getElementById('editVehicleModal');
+    const editForm = document.getElementById('form-edit-db-vehicle');
+    const closeEditModalBtn = document.getElementById('closeEditModal');
+
+    // Fechar modal no botão 'X'
+    if (closeEditModalBtn) {
+        closeEditModalBtn.onclick = () => editModal.style.display = "none";
+    }
+    // Fechar modal clicando fora dele
+    window.onclick = (event) => {
+        if (event.target == editModal) {
+            editModal.style.display = "none";
+        }
+    };
+
+    // Submissão do formulário de edição
+    if (editForm) {
+        editForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const errorDiv = document.getElementById('edit-form-error');
+            errorDiv.textContent = '';
+
+            const vehicleId = document.getElementById('edit-db-id').value;
+            const updatedData = {
+                // Não enviamos a placa, pois é readonly
+                marca: document.getElementById('edit-db-marca').value,
+                modelo: document.getElementById('edit-db-modelo').value,
+                ano: document.getElementById('edit-db-ano').value,
+                cor: document.getElementById('edit-db-cor').value,
+            };
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/veiculos/${vehicleId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedData)
+                });
+
+                if (response.ok) {
+                    alert('Veículo atualizado com sucesso!');
+                    editModal.style.display = 'none';
+                    await fetchAndDisplayVehicles(); // Atualiza a lista
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Falha ao atualizar o veículo.');
+                }
+            } catch (error) {
+                console.error("Erro ao salvar alterações:", error);
+                errorDiv.textContent = `Erro: ${error.message}`;
             }
         });
     }
 
     // --- CARREGA DADOS DAS APIS ---
-    fetchAndDisplayVehicles(); // Carga inicial dos veículos do DB
+    fetchAndDisplayVehicles(); 
     carregarViagensPopulares();
     carregarServicosOferecidos();
 
-    // --- INÍCIO: Lógica para o seletor de cidade do clima ---
+    // --- LÓGICA DO CLIMA ---
     const cityInput = document.getElementById('cityInput');
     const searchWeatherBtn = document.getElementById('searchWeatherBtn');
     const weatherInfoDiv = document.getElementById('weather-info');
@@ -206,34 +321,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 garagem.carregarEExibirClima(cidade);
                 const forecastInfoDiv = document.getElementById('forecast-info');
                 if (forecastInfoDiv) forecastInfoDiv.innerHTML = `Selecione o número de dias para ver a previsão para ${cidade}.`;
-
             } else {
                 alert("Por favor, digite o nome de uma cidade.");
             }
         });
-
-        cityInput.addEventListener('keypress', (event) => {
-            if (event.key === 'Enter') {
-                searchWeatherBtn.click();
-            }
-        });
+        cityInput.addEventListener('keypress', (event) => { if (event.key === 'Enter') searchWeatherBtn.click(); });
         garagem.carregarEExibirClima(cityInput.value.trim());
-
-    } else {
-        console.warn("Elementos para busca de clima não encontrados.");
     }
-    // --- FIM: Lógica para o seletor de cidade do clima ---
 
-    // --- INÍCIO: Lógica para botões de previsão de N dias ---
+    // --- LÓGICA DA PREVISÃO ---
     const forecastBtns = document.querySelectorAll('.forecast-days-btn');
     const forecastInfoDiv = document.getElementById('forecast-info');
-
     if (forecastBtns.length > 0 && cityInput && forecastInfoDiv) {
         forecastBtns.forEach(btn => {
             btn.addEventListener('click', () => {
                 const cidade = cityInput.value.trim();
                 const numDias = parseInt(btn.getAttribute('data-days'), 10);
-
                 if (cidade && numDias) {
                     forecastInfoDiv.innerHTML = `⏳ Carregando previsão de ${numDias} dia(s) para ${cidade}...`;
                     garagem.carregarEExibirPrevisao(cidade, numDias);
@@ -250,12 +353,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 garagem.carregarEExibirPrevisao(cidadeInicial, 3);
             }
         }, 1000);
-    } else {
-        console.warn("Elementos para botões de previsão não encontrados.");
     }
-    // --- FIM: Lógica para botões de previsão de N dias ---
-
-    // --- INÍCIO: LÓGICA PARA DICAS DA COMUNIDADE ---
+    
+    // --- LÓGICA PARA DICAS DA COMUNIDADE ---
     const buscarDicaBtn = document.getElementById('buscarDicaBtn');
     const dicaModeloInput = document.getElementById('dicaModeloInput');
     const dicaModal = document.getElementById('dicaModal');
@@ -263,104 +363,65 @@ document.addEventListener('DOMContentLoaded', () => {
     const dicaForm = document.getElementById('dicaForm');
 
     const abrirModalDica = (modo, dados) => {
-        const modalTitle = document.getElementById('dicaModalTitle');
-        const formModo = document.getElementById('dicaFormModo');
-        const formModelo = document.getElementById('dicaFormModelo');
-        const formTexto = document.getElementById('dicaFormTexto');
-        const formAutor = document.getElementById('dicaFormAutor');
-
-        formModo.value = modo;
-        formModelo.value = dados.modelo;
-
-        if (modo === 'edit') {
-            modalTitle.textContent = `Editar Dica para ${dados.modelo}`;
-            formTexto.value = dados.dica;
-            formAutor.value = dados.autor;
-        } else {
-            modalTitle.textContent = `Adicionar Dica para ${dados.modelo}`;
-            formTexto.value = '';
-            formAutor.value = '';
-        }
+        document.getElementById('dicaModalTitle').textContent = modo === 'edit' ? `Editar Dica para ${dados.modelo}` : `Adicionar Dica para ${dados.modelo}`;
+        document.getElementById('dicaFormModo').value = modo;
+        document.getElementById('dicaFormModelo').value = dados.modelo;
+        document.getElementById('dicaFormTexto').value = modo === 'edit' ? dados.dica : '';
+        document.getElementById('dicaFormAutor').value = modo === 'edit' ? dados.autor : '';
         dicaModal.style.display = 'block';
     };
 
-    const fecharModalDica = () => {
-        dicaModal.style.display = 'none';
-        dicaForm.reset();
-    };
+    const fecharModalDica = () => { dicaModal.style.display = 'none'; dicaForm.reset(); };
     
     buscarDicaBtn.addEventListener('click', async () => {
         const modelo = dicaModeloInput.value.trim();
         if (!modelo) return;
-
         try {
             const response = await fetch(`http://localhost:3000/api/dicas/${encodeURIComponent(modelo)}`);
             if (response.ok) {
-                const dica = await response.json();
-                abrirModalDica('edit', dica);
+                abrirModalDica('edit', await response.json());
             } else if (response.status === 404) {
                 if (confirm(`Nenhuma dica encontrada para "${modelo}". Deseja adicionar uma?`)) {
                     abrirModalDica('add', { modelo: modelo });
                 }
-            } else {
-                throw new Error(`Erro do servidor: ${response.statusText}`);
-            }
-        } catch (error) {
-            console.error("Erro ao buscar dica:", error);
-        }
+            } else { throw new Error(`Erro do servidor: ${response.statusText}`); }
+        } catch (error) { console.error("Erro ao buscar dica:", error); }
     });
 
     dicaForm.addEventListener('submit', async (event) => {
         event.preventDefault();
-        
         const modo = document.getElementById('dicaFormModo').value;
         const modelo = document.getElementById('dicaFormModelo').value;
-        const dica = document.getElementById('dicaFormTexto').value;
-        const autor = document.getElementById('dicaFormAutor').value;
-        
         const url = `http://localhost:3000/api/dicas${modo === 'edit' ? '/' + encodeURIComponent(modelo) : ''}`;
         const method = modo === 'edit' ? 'PUT' : 'POST';
-
         try {
             const response = await fetch(url, {
                 method: method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ modelo, dica, autor }),
+                body: JSON.stringify({
+                    modelo: modelo,
+                    dica: document.getElementById('dicaFormTexto').value,
+                    autor: document.getElementById('dicaFormAutor').value
+                }),
             });
-
             const result = await response.json();
-
             if (response.ok) {
                 alert(`Dica ${modo === 'edit' ? 'atualizada' : 'adicionada'} com sucesso!`);
                 fecharModalDica();
-            } else {
-                throw new Error(result.message || "Ocorreu um erro no servidor.");
-            }
-        } catch (error) {
-            console.error("Erro ao salvar dica:", error);
-            alert(`Erro ao salvar: ${error.message}`);
-        }
+            } else { throw new Error(result.message || "Ocorreu um erro no servidor."); }
+        } catch (error) { alert(`Erro ao salvar: ${error.message}`); }
     });
 
     closeDicaModal.addEventListener('click', fecharModalDica);
-    window.addEventListener('click', (event) => {
-        if (event.target === dicaModal) {
-            fecharModalDica();
-        }
-    });
-    // --- FIM: LÓGICA PARA DICAS DA COMUNIDADE ---
+    window.addEventListener('click', (event) => { if (event.target === dicaModal) fecharModalDica(); });
 
-
-    // --- Lógica antiga do simulador local ---
+    // --- Lógica do simulador local ---
     if (Object.keys(garagem.veiculos).length === 0) {
-        console.log("Garagem local vazia. Criando veículos padrão do simulador...");
         garagem.criarCarro();
         garagem.criarMoto();
         garagem.criarCarroEsportivo();
         garagem.criarCaminhao();
-    } else {
-        console.log("Veículos do simulador carregados do localStorage. Atualizando UI.");
     }
     garagem.atualizarUICompleta();
     garagem.verificarAgendamentosProximos();
-});``
+});
