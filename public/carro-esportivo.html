@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Link para CSS -->
+    <title>Garagem Interativa - Carro Esportivo</title>
+</head>
+
+<body>
+    <!-- Cabeçalho -->
+    <header class="site-header">
+        <div class="header-container">
+            <a href="index.html" class="logo">Garagem Interativa</a>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="index.html" id="nav-index">Home</a></li>
+                    <li><a href="carro.html" id="nav-carro">Carro</a></li>
+                    <li><a href="carro-esportivo.html" id="nav-carro-esportivo">Carro Esportivo</a></li>
+                    <li><a href="caminhao.html" id="nav-caminhao">Caminhão</a></li>
+                    <li><a href="moto.html" id="nav-moto">Moto</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <h2>Carro Esportivo</h2>
+        
+        <!-- Seção Carro -->
+        <section class="container">
+            <div id="carroEsportivo-container">
+                <img id="carroEsportivo-imagem" src="imagens/png-clipart-black-car-dodge-challenger-grey-transport-cars-removebg-preview.png" alt="Imagem do Carro Esportivo">
+                <p id="carroEsportivo-status">Desligado</p>
+                <div class="painel-velocidade">
+                    <div class="barra-velocidade">
+                        <div class="ponteiro" id="ponteiro-carroEsportivo-velocidade"></div>
+                    </div>
+                    <div class="velocidade-display" id="carroEsportivo-velocidade-valor">0 km/h</div>
+                    <div class="animacao-aceleracao" id="animacao-aceleracao-carroEsportivo"></div>
+                    <div class="animacao-freagem" id="animacao-freagem-carroEsportivo"></div>
+                </div>
+                <p id="carroEsportivo-detalhes">Modelo: <span id="carroEsportivo-modelo"></span>, Cor: <span id="carroEsportivo-cor"></span></p>
+                <p id="infoEsportivo"></p>
+            </div>
+            <div>
+                <input type="text" id="modeloEsportivo" placeholder="Modelo">
+                <input type="text" id="corEsportivo" placeholder="Cor">
+                <button onclick="garagem.criarCarroEsportivo()">Criar/Atualizar Carro Esportivo</button>
+            </div>
+            <div id="botoes-carroEsportivo" class="botoes">
+                <button onclick="garagem.interagirComVeiculo('carroEsportivo', 'ligar')" id="ligar-carroEsportivo-btn">Ligar</button>
+                <button onclick="garagem.interagirComVeiculo('carroEsportivo', 'desligar')" id="desligar-carroEsportivo-btn">Desligar</button>
+                <button onclick="garagem.interagirComVeiculo('carroEsportivo', 'acelerar')" id="acelerar-carroEsportivo-btn">Acelerar</button>
+                <button onclick="garagem.interagirComVeiculo('carroEsportivo', 'frear')" id="frear-carroEsportivo-btn">Frear</button>
+                <button onclick="garagem.interagirComVeiculo('carroEsportivo', 'ativarTurbo')">Ativar Turbo</button>
+                <button onclick="garagem.interagirComVeiculo('carroEsportivo', 'desativarTurbo')">Desativar Turbo</button>
+                <!-- NOVO BOTÃO ABAIXO -->
+                <button onclick="garagem.abrirModalDiagnostico('carroEsportivo')" class="btn-diagnostico">Diagnosticar Problema</button>
+                <br>
+                <input type="text" id="corPinturaEsportivo" placeholder="Nova Cor">
+                <button onclick="garagem.pintarVeiculo('carroEsportivo')" id="pintar-carroEsportivo-btn">Pintar</button>
+                <input type="number" id="combustivelEsportivo" placeholder="Add Combustível (%)" min="0" max="100">
+                <button onclick="garagem.abastecerVeiculo('carroEsportivo')" id="abastecer-carroEsportivo-btn">Abastecer</button>
+            </div>
+            <br>
+            <button onclick="garagem.buscarDetalhesExtras('carroEsportivo')" id="detalhes-carroEsportivo-btn">
+                Ver Detalhes (API Sim.)
+            </button>
+            <div class="extra-details" id="extra-details-carroEsportivo" style="margin-top: 10px; padding: 8px; background-color: #f4f4f4; border: 1px solid #ddd; border-radius: 4px; display: none;">
+            </div>
+            <div class="manutencao-forms-container">
+                <div class="manutencao-form">
+                    <h4>Registrar Manutenção Realizada</h4>
+                    <input type="date" id="dataManutencaoEsportivo" title="Data da Manutenção">
+                    <input type="text" id="tipoManutencaoEsportivo" placeholder="Tipo de Serviço">
+                    <input type="number" id="custoManutencaoEsportivo" placeholder="Custo (R$)" min="0" step="0.01">
+                    <input type="text" id="descManutencaoEsportivo" placeholder="Descrição (Opcional)">
+                    <button onclick="garagem.registrarManutencao('carroEsportivo')">Registrar Concluída</button>
+                </div>
+                <div class="manutencao-form">
+                    <h4>Agendar Manutenção Futura</h4>
+                    <input type="date" id="dataAgendamentoEsportivo" title="Data do Agendamento">
+                    <input type="time" id="horaAgendamentoEsportivo" title="Hora do Agendamento (Opcional)">
+                    <input type="text" id="tipoAgendamentoEsportivo" placeholder="Tipo de Serviço">
+                    <input type="text" id="obsAgendamentoEsportivo" placeholder="Observações (Opcional)">
+                    <button onclick="garagem.agendarManutencao('carroEsportivo')">Agendar</button>
+                </div>
+            </div>
+        </section>
+
+        <hr>
+
+        <section class="container">
+            <h2>Agendamentos Futuros</h2>
+            <ul id="listaAgendamentos">
+                <li class="nenhum">Carregando agendamentos...</li>
+            </ul>
+        </section>
+
+        <hr>
+
+        <section class="container">
+            <h2>Exibir Informações do Veículo</h2>
+            <div class="botoes">
+                <button onclick="garagem.exibirInformacoes('meuCarro')">Exibir Carro</button>
+            </div>
+            <div id="informacoesVeiculo">Selecione um veículo acima para ver seus detalhes e histórico de manutenção concluída.</div>
+        </section>
+
+    </main>
+
+    <!-- MODAL PARA DIAGNÓSTICO (escondido por padrão) -->
+    <div id="diagnosticoModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeDiagnosticoModal">×</span>
+            <h3 id="diagnosticoModalTitle">Diagnóstico do Veículo</h3>
+            
+            <input type="hidden" id="diagnosticoVeiculoNome"> <!-- Guarda o nome interno do veículo -->
+            
+            <label for="diagnosticoProblemaSelect">Selecione o problema principal:</label>
+            <select id="diagnosticoProblemaSelect" style="width: 100%; padding: 8px; margin-top: 5px;">
+                <option value="">-- Carregando problemas... --</option>
+            </select>
+            
+            <button id="analisarProblemaBtn" style="margin-top: 15px;">Analisar</button>
+    
+            <div id="diagnosticoResultado" style="margin-top: 20px; padding: 15px; background: #f0f8ff; border-radius: 5px; display: none;">
+                <!-- O resultado da análise aparecerá aqui -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts JS -->
+    <script src="java/manutencao.js"></script>
+    <script src="java/veiculo.js"></script>
+    <script src="java/carro.js"></script>
+    <script src="java/weatherService.js"></script>
+    <script src="java/simulated.js"></script>
+    <script src="java/garagem.js"></script>
+    <script src="java/script.js"></script>
+</body>
+
+</html>

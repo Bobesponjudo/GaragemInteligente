@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Link para CSS -->
+    <title>Garagem Interativa - Caminhão</title>
+</head>
+
+<body>
+    <!-- Cabeçalho -->
+    <header class="site-header">
+        <div class="header-container">
+            <a href="index.html" class="logo">Garagem Interativa</a>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="index.html" id="nav-index">Home</a></li>
+                    <li><a href="carro.html" id="nav-carro">Carro</a></li>
+                    <li><a href="carro-esportivo.html" id="nav-carro-esportivo">Carro Esportivo</a></li>
+                    <li><a href="caminhao.html" id="nav-caminhao">Caminhão</a></li>
+                    <li><a href="moto.html" id="nav-moto">Moto</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <h2>Caminhão</h2>
+        
+        <!-- Seção Carro -->
+        <section class="container">
+            <div id="caminhao-container">
+                <img id="caminhao-imagem" src="imagens/Scania-30-G.webp" alt="Imagem do Caminhão">
+                <p id="caminhao-status">Desligado</p>
+                <div class="painel-velocidade">
+                    <div class="barra-velocidade">
+                        <div class="ponteiro" id="ponteiro-caminhao-velocidade"></div>
+                    </div>
+                    <div class="velocidade-display" id="caminhao-velocidade-valor">0 km/h</div>
+                    <div class="animacao-aceleracao" id="animacao-aceleracao-caminhao"></div>
+                    <div class="animacao-freagem" id="animacao-freagem-caminhao"></div>
+                </div>
+                <p id="caminhao-detalhes">Modelo: <span id="caminhao-modelo"></span>, Cor: <span id="caminhao-cor"></span></p>
+                <p id="infoCaminhao"></p>
+            </div>
+            <div>
+                <input type="text" id="modeloCaminhao" placeholder="Modelo">
+                <input type="text" id="corCaminhao" placeholder="Cor">
+                <input type="number" id="capacidadeCarga" placeholder="Capacidade (kg)" min="0">
+                <button onclick="garagem.criarCaminhao()">Criar/Atualizar Caminhão</button>
+            </div>
+            <div id="botoes-caminhao" class="botoes">
+                <button onclick="garagem.interagirComVeiculo('caminhao', 'ligar')" id="ligar-caminhao-btn">Ligar</button>
+                <button onclick="garagem.interagirComVeiculo('caminhao', 'desligar')" id="desligar-caminhao-btn">Desligar</button>
+                <button onclick="garagem.interagirComVeiculo('caminhao', 'acelerar')" id="acelerar-caminhao-btn">Acelerar</button>
+                <button onclick="garagem.interagirComVeiculo('caminhao', 'frear')" id="frear-caminhao-btn">Frear</button>
+                <!-- NOVO BOTÃO ABAIXO -->
+                <button onclick="garagem.abrirModalDiagnostico('caminhao')" class="btn-diagnostico">Diagnosticar Problema</button>
+                <br>
+                <input type="number" id="pesoCarga" placeholder="Peso Carga (kg)" min="0">
+                <button onclick="garagem.interagirComVeiculo('caminhao', 'carregar')">Carregar</button>
+                <input type="number" id="pesoDescarga" placeholder="Peso Descarga (kg)" min="0">
+                <button onclick="garagem.interagirComVeiculo('caminhao', 'descarregar')">Descarregar</button>
+                <br>
+                <input type="text" id="corPinturaCaminhao" placeholder="Nova Cor">
+                <button onclick="garagem.pintarVeiculo('caminhao')" id="pintar-caminhao-btn">Pintar</button>
+                <input type="number" id="combustivelCaminhao" placeholder="Add Combustível (%)" min="0" max="100">
+                <button onclick="garagem.abastecerVeiculo('caminhao')" id="abastecer-caminhao-btn">Abastecer</button>
+            </div>
+            <br>
+            <button onclick="garagem.buscarDetalhesExtras('caminhao')" id="detalhes-caminhao-btn">
+                Ver Detalhes (API Sim.)
+            </button>
+            <div class="extra-details" id="extra-details-caminhao" style="margin-top: 10px; padding: 8px; background-color: #f4f4f4; border: 1px solid #ddd; border-radius: 4px; display: none;">
+            </div>
+            <div class="manutencao-forms-container">
+                <div class="manutencao-form">
+                    <h4>Registrar Manutenção Realizada</h4>
+                    <input type="date" id="dataManutencaoCaminhao" title="Data da Manutenção">
+                    <input type="text" id="tipoManutencaoCaminhao" placeholder="Tipo de Serviço">
+                    <input type="number" id="custoManutencaoCaminhao" placeholder="Custo (R$)" min="0" step="0.01">
+                    <input type="text" id="descManutencaoCaminhao" placeholder="Descrição (Opcional)">
+                    <button onclick="garagem.registrarManutencao('caminhao')">Registrar Concluída</button>
+                </div>
+                <div class="manutencao-form">
+                    <h4>Agendar Manutenção Futura</h4>
+                    <input type="date" id="dataAgendamentoCaminhao" title="Data do Agendamento">
+                    <input type="time" id="horaAgendamentoCaminhao" title="Hora do Agendamento (Opcional)">
+                    <input type="text" id="tipoAgendamentoCaminhao" placeholder="Tipo de Serviço">
+                    <input type="text" id="obsAgendamentoCaminhao" placeholder="Observações (Opcional)">
+                    <button onclick="garagem.agendarManutencao('caminhao')">Agendar</button>
+                </div>
+            </div>
+        </section>
+
+        <hr>
+
+        <section class="container">
+            <h2>Agendamentos Futuros</h2>
+            <ul id="listaAgendamentos">
+                <li class="nenhum">Carregando agendamentos...</li>
+            </ul>
+        </section>
+
+        <hr>
+
+        <section class="container">
+            <h2>Exibir Informações do Veículo</h2>
+            <div class="botoes">
+                <button onclick="garagem.exibirInformacoes('meuCarro')">Exibir Carro</button>
+            </div>
+            <div id="informacoesVeiculo">Selecione um veículo acima para ver seus detalhes e histórico de manutenção concluída.</div>
+        </section>
+
+    </main>
+
+    <!-- MODAL PARA DIAGNÓSTICO (escondido por padrão) -->
+    <div id="diagnosticoModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeDiagnosticoModal">×</span>
+            <h3 id="diagnosticoModalTitle">Diagnóstico do Veículo</h3>
+            
+            <input type="hidden" id="diagnosticoVeiculoNome"> <!-- Guarda o nome interno do veículo -->
+            
+            <label for="diagnosticoProblemaSelect">Selecione o problema principal:</label>
+            <select id="diagnosticoProblemaSelect" style="width: 100%; padding: 8px; margin-top: 5px;">
+                <option value="">-- Carregando problemas... --</option>
+            </select>
+            
+            <button id="analisarProblemaBtn" style="margin-top: 15px;">Analisar</button>
+    
+            <div id="diagnosticoResultado" style="margin-top: 20px; padding: 15px; background: #f0f8ff; border-radius: 5px; display: none;">
+                <!-- O resultado da análise aparecerá aqui -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts JS -->
+    <script src="java/manutencao.js"></script>
+    <script src="java/veiculo.js"></script>
+    <script src="java/carro.js"></script>
+    <script src="java/weatherService.js"></script>
+    <script src="java/simulated.js"></script>
+    <script src="java/garagem.js"></script>
+    <script src="java/script.js"></script>
+</body>
+
+</html>
