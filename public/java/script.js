@@ -29,13 +29,14 @@ async function fetchAndDisplayVehicles() {
         vehicles.forEach(vehicle => {
             const card = document.createElement('div');
             card.className = 'db-vehicle-card'; 
-            // **ALTERAÇÃO AQUI: Adicionados botões de Editar e Excluir com data-id**
+            // **ALTERAÇÃO AQUI: Adicionados botões de Editar, Excluir e Manutenções**
             card.innerHTML = `
                 <h4>${vehicle.marca} ${vehicle.modelo} (${vehicle.ano})</h4>
                 <p><strong>Placa:</strong> ${vehicle.placa}</p>
                 <p><strong>Cor:</strong> ${vehicle.cor || 'Não especificada'}</p>
                 <p><small>ID: ${vehicle._id}</small></p>
                 <div class="db-vehicle-actions">
+                    <button class="btn-maintenance" data-id="${vehicle._id}">Manutenções</button>
                     <button class="btn-edit" data-id="${vehicle._id}">Editar</button>
                     <button class="btn-delete" data-id="${vehicle._id}">Excluir</button>
                 </div>
@@ -44,9 +45,83 @@ async function fetchAndDisplayVehicles() {
         });
         console.log("[API] Veículos exibidos com sucesso.");
 
-    } catch (error) {
+    } catch (error)
+        {
         console.error("Erro CRÍTICO ao buscar veículos da API:", error);
         listContainer.innerHTML = '<p class="error-message">Falha ao carregar veículos. Verifique se o servidor está online.</p>';
+    }
+}
+
+// =============================================================================
+// === NOVAS FUNÇÕES PARA GERENCIAR MANUTENÇÕES (FRONTEND) ======================
+// =============================================================================
+
+/**
+ * Faz um fetch GET para carregar e exibir os registros de manutenção de um veículo.
+ * @param {string} veiculoId O ID do veículo.
+ */
+async function carregarManutencoes(veiculoId) {
+    const maintenanceList = document.getElementById('lista-manutencoes');
+    maintenanceList.innerHTML = '<li>Carregando histórico...</li>';
+
+    try {
+        const response = await fetch(`http://localhost:3000/api/veiculos/${veiculoId}/manutencoes`);
+        if (!response.ok) {
+            throw new Error('Falha ao buscar o histórico de manutenções.');
+        }
+        const manutenoces = await response.json();
+
+        maintenanceList.innerHTML = ''; // Limpa a lista
+        if (manutenoces.length === 0) {
+            maintenanceList.innerHTML = '<li>Nenhum registro de manutenção encontrado.</li>';
+            return;
+        }
+
+        manutenoces.forEach(m => {
+            const li = document.createElement('li');
+            const dataFormatada = new Date(m.data).toLocaleDateString('pt-BR');
+            const custoFormatado = m.custo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            
+            li.innerHTML = `
+                <strong>${m.descricaoServico}</strong>
+                <span>Data: ${dataFormatada}</span>
+                <span>Custo: ${custoFormatado}</span>
+                ${m.quilometragem ? `<span>KM: ${m.quilometragem}</span>` : ''}
+            `;
+            maintenanceList.appendChild(li);
+        });
+
+    } catch (error) {
+        console.error("Erro ao carregar manutenções:", error);
+        maintenanceList.innerHTML = `<li class="error-message">${error.message}</li>`;
+    }
+}
+
+/**
+ * Exibe a seção de detalhes e carrega as manutenções de um veículo específico.
+ * @param {string} veiculoId O ID do veículo selecionado.
+ */
+async function showMaintenanceForVehicle(veiculoId) {
+    const container = document.getElementById('maintenance-details-container');
+    const title = document.getElementById('maintenance-vehicle-title');
+    const hiddenInput = document.getElementById('maintenance-veiculo-id');
+
+    try {
+        // Busca os dados do veículo para exibir o nome no título
+        const response = await fetch(`http://localhost:3000/api/veiculos/${veiculoId}`);
+        if (!response.ok) throw new Error('Não foi possível encontrar o veículo selecionado.');
+        const vehicle = await response.json();
+        
+        title.textContent = `Manutenções para ${vehicle.marca} ${vehicle.modelo} (${vehicle.placa})`;
+        hiddenInput.value = veiculoId; // Armazena o ID no formulário
+        container.style.display = 'block'; // Mostra a seção
+        container.scrollIntoView({ behavior: 'smooth' });
+
+        await carregarManutencoes(veiculoId); // Carrega o histórico
+
+    } catch (error) {
+        console.error("Erro ao exibir detalhes do veículo:", error);
+        alert(error.message);
     }
 }
 
@@ -187,7 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- NOVA LÓGICA PARA UPDATE E DELETE (usando delegação de eventos) ---
+    // --- LÓGICA PARA UPDATE, DELETE E VISUALIZAÇÃO DE MANUTENÇÕES ---
     const vehicleListContainer = document.getElementById('db-vehicle-list');
     if(vehicleListContainer) {
         vehicleListContainer.addEventListener('click', async (event) => {
@@ -204,6 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         if (response.ok) {
                             alert('Veículo excluído com sucesso!');
+                            document.getElementById('maintenance-details-container').style.display = 'none'; // Esconde detalhes se o carro for excluído
                             await fetchAndDisplayVehicles(); // Atualiza a lista
                         } else {
                             const errorData = await response.json();
@@ -224,13 +300,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 errorDiv.textContent = ''; // Limpa erros antigos
 
                 try {
-                    // 1. Buscar os dados atuais do veículo
                     const response = await fetch(`http://localhost:3000/api/veiculos/${vehicleId}`);
                     if (!response.ok) throw new Error('Não foi possível carregar os dados do veículo para edição.');
                     
                     const vehicle = await response.json();
 
-                    // 2. Preencher o formulário no modal
                     document.getElementById('edit-db-id').value = vehicle._id;
                     document.getElementById('edit-db-placa').value = vehicle.placa;
                     document.getElementById('edit-db-marca').value = vehicle.marca;
@@ -238,7 +312,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('edit-db-ano').value = vehicle.ano;
                     document.getElementById('edit-db-cor').value = vehicle.cor;
 
-                    // 3. Exibir o modal
                     modal.style.display = 'block';
 
                 } catch (error) {
@@ -246,26 +319,29 @@ document.addEventListener('DOMContentLoaded', () => {
                     alert(`Erro: ${error.message}`);
                 }
             }
+            
+            // --- Lógica para MOSTRAR MANUTENÇÕES ---
+            if (target.classList.contains('btn-maintenance')) {
+                const vehicleId = target.dataset.id;
+                await showMaintenanceForVehicle(vehicleId);
+            }
         });
     }
 
-    // --- NOVA LÓGICA: Manipulação do Modal de Edição ---
+    // --- LÓGICA: Manipulação do Modal de Edição ---
     const editModal = document.getElementById('editVehicleModal');
     const editForm = document.getElementById('form-edit-db-vehicle');
     const closeEditModalBtn = document.getElementById('closeEditModal');
 
-    // Fechar modal no botão 'X'
     if (closeEditModalBtn) {
         closeEditModalBtn.onclick = () => editModal.style.display = "none";
     }
-    // Fechar modal clicando fora dele
-    window.onclick = (event) => {
+    window.addEventListener('click', (event) => {
         if (event.target == editModal) {
             editModal.style.display = "none";
         }
-    };
+    });
 
-    // Submissão do formulário de edição
     if (editForm) {
         editForm.addEventListener('submit', async (event) => {
             event.preventDefault();
@@ -274,7 +350,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const vehicleId = document.getElementById('edit-db-id').value;
             const updatedData = {
-                // Não enviamos a placa, pois é readonly
                 marca: document.getElementById('edit-db-marca').value,
                 modelo: document.getElementById('edit-db-modelo').value,
                 ano: document.getElementById('edit-db-ano').value,
@@ -302,11 +377,58 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+    
+    // --- NOVA LÓGICA: Formulário de Adicionar Manutenção ---
+    const maintenanceForm = document.getElementById('form-add-manutencao');
+    const maintenanceMessageDiv = document.getElementById('maintenance-form-message');
+
+    if (maintenanceForm) {
+        maintenanceForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            maintenanceMessageDiv.textContent = '';
+            maintenanceMessageDiv.className = 'form-message'; // Reseta classe
+
+            const veiculoId = document.getElementById('maintenance-veiculo-id').value;
+            if (!veiculoId) {
+                alert('Nenhum veículo selecionado!');
+                return;
+            }
+
+            const dadosFormulario = {
+                descricaoServico: document.getElementById('maintenance-descricao').value,
+                custo: parseFloat(document.getElementById('maintenance-custo').value),
+                quilometragem: document.getElementById('maintenance-km').value ? parseInt(document.getElementById('maintenance-km').value, 10) : undefined,
+            };
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/veiculos/${veiculoId}/manutencoes`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dadosFormulario),
+                });
+
+                if (response.ok) {
+                    maintenanceMessageDiv.textContent = 'Manutenção adicionada com sucesso!';
+                    maintenanceMessageDiv.classList.add('success');
+                    maintenanceForm.reset(); // Limpa o formulário
+                    await carregarManutencoes(veiculoId); // Atualiza a lista
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Falha ao salvar a manutenção.');
+                }
+            } catch (error) {
+                console.error('Erro ao adicionar manutenção:', error);
+                maintenanceMessageDiv.textContent = error.message;
+                maintenanceMessageDiv.classList.add('error-message');
+            }
+        });
+    }
+
 
     // --- CARREGA DADOS DAS APIS ---
     fetchAndDisplayVehicles(); 
     carregarViagensPopulares();
-    carregarServicosOferecidos();
+    //carregarServicosOferecidos();
 
     // --- LÓGICA DO CLIMA ---
     const cityInput = document.getElementById('cityInput');

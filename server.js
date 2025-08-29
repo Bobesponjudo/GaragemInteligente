@@ -17,6 +17,7 @@ const mongoose = require('mongoose');
 const Veiculo = require('./models/Veiculo');
 const Servico = require('./models/Servico');
 const Problema = require('./models/Problema');
+const Manutencao = require('./models/Manutencao'); 
 
 
 // --- CONFIGURAÇÃO DO SERVIDOR ---
@@ -156,7 +157,6 @@ app.get('/api/veiculos', async (req, res) => {
  * @route   GET /api/veiculos/:id
  * @desc    Ler (buscar) um único veículo pelo seu ID
  * @access  Public
- * @nova_rota
  */
 app.get('/api/veiculos/:id', async (req, res) => {
     try {
@@ -168,7 +168,6 @@ app.get('/api/veiculos/:id', async (req, res) => {
         res.json(veiculo);
     } catch (error) {
         console.error("[Servidor] Erro ao buscar veículo por ID:", error);
-        // Se o ID for inválido (malformado), o Mongoose gera um CastError
         if (error.name === 'CastError') {
             return res.status(400).json({ error: 'ID de veículo inválido.' });
         }
@@ -181,7 +180,6 @@ app.get('/api/veiculos/:id', async (req, res) => {
  * @route   PUT /api/veiculos/:id
  * @desc    Atualizar um veículo existente
  * @access  Public
- * @nova_rota
  */
 app.put('/api/veiculos/:id', async (req, res) => {
     try {
@@ -222,7 +220,6 @@ app.put('/api/veiculos/:id', async (req, res) => {
  * @route   DELETE /api/veiculos/:id
  * @desc    Excluir um veículo
  * @access  Public
- * @nova_rota
  */
 app.delete('/api/veiculos/:id', async (req, res) => {
     try {
@@ -233,6 +230,11 @@ app.delete('/api/veiculos/:id', async (req, res) => {
             return res.status(404).json({ error: 'Veículo não encontrado para exclusão.' });
         }
 
+        // Excluir manutenções associadas
+        await Manutencao.deleteMany({ veiculo: id });
+        console.log(`[Servidor] Manutenções do veículo ${id} também foram excluídas.`);
+
+
         console.log('[Servidor] Veículo excluído com sucesso:', veiculoExcluido);
         res.json({ message: `Veículo com placa ${veiculoExcluido.placa} foi excluído com sucesso.` });
 
@@ -242,6 +244,79 @@ app.delete('/api/veiculos/:id', async (req, res) => {
             return res.status(400).json({ error: 'ID de veículo inválido.' });
         }
         res.status(500).json({ error: 'Erro interno ao excluir veículo.' });
+    }
+});
+
+// ===================================================================
+// === ROTAS PARA MANUTENÇÃO (IMPLEMENTADAS CONFORME PROMPT) =========
+// ===================================================================
+
+/**
+ * @route   POST /api/veiculos/:veiculoId/manutencoes
+ * @desc    Adicionar um novo registro de manutenção a um veículo
+ * @access  Public
+ */
+app.post('/api/veiculos/:veiculoId/manutencoes', async (req, res) => {
+    try {
+        // 1. Extrair o veiculoId dos parâmetros da rota.
+        const { veiculoId } = req.params;
+
+        // 2. Validar se o veículo com esse ID realmente existe.
+        const veiculo = await Veiculo.findById(veiculoId);
+        if (!veiculo) {
+            return res.status(404).json({ error: 'Veículo não encontrado. Impossível adicionar manutenção.' });
+        }
+
+        // 3. Criar e salvar a nova manutenção.
+        const manutencaoData = {
+            ...req.body,
+            veiculo: veiculoId // Garante a associação correta
+        };
+
+        const novaManutencao = await Manutencao.create(manutencaoData);
+        
+        // 4. Se bem-sucedido, retornar status 201 com o documento criado.
+        res.status(201).json(novaManutencao);
+
+    } catch (error) {
+        // 5. Lidar com erros de validação e outros erros.
+        console.error("Erro ao salvar manutenção:", error);
+        if (error.name === 'ValidationError') {
+            const messages = Object.values(error.errors).map(val => val.message);
+            return res.status(400).json({ error: messages.join(' ') });
+        }
+        res.status(500).json({ error: 'Erro interno do servidor ao salvar a manutenção.' });
+    }
+});
+
+
+/**
+ * @route   GET /api/veiculos/:veiculoId/manutencoes
+ * @desc    Listar todos os registros de manutenção de um veículo
+ * @access  Public
+ */
+app.get('/api/veiculos/:veiculoId/manutencoes', async (req, res) => {
+    try {
+        // 1. Extrair o veiculoId dos parâmetros da rota.
+        const { veiculoId } = req.params;
+
+        // 2. (Opcional, mas bom) Validar se o veículo existe.
+        const veiculo = await Veiculo.findById(veiculoId);
+        if (!veiculo) {
+            return res.status(404).json({ error: 'Veículo não encontrado.' });
+        }
+        
+        // 3. Buscar todas as manutenções para o veículoId e ordenar.
+        const manutenoces = await Manutencao.find({ veiculo: veiculoId })
+                                            .sort({ data: -1 }); // Ordena pela data mais recente
+
+        // 4. Retornar a lista de manutenções com status 200.
+        res.status(200).json(manutenoces);
+
+    } catch (error) {
+        // 5. Envolver a lógica em try...catch para lidar com erros.
+        console.error("Erro ao buscar manutenções do veículo:", error);
+        res.status(500).json({ error: 'Erro interno do servidor ao buscar as manutenções.' });
     }
 });
 

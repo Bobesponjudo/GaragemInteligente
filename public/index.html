@@ -14,7 +14,7 @@
         <h1>Garagem Interativa</h1> <!-- Título Mantido -->
         
         <!-- =================================================================== -->
-        <!-- ============== NOVA SEÇÃO PARA VEÍCULOS DO BANCO DE DADOS ========= -->
+        <!-- ============== SEÇÃO PARA VEÍCULOS DO BANCO DE DADOS ============== -->
         <!-- =================================================================== -->
         <section id="db-vehicles-container" class="container">
             <h2>Veículos no Banco de Dados (via API)</h2>
@@ -39,6 +39,45 @@
             <h3>Garagem Registrada</h3>
             <div id="db-vehicle-list">
                 <p>Carregando veículos do banco de dados...</p>
+            </div>
+        </section>
+        <hr>
+        
+        <!-- =================================================================== -->
+        <!-- ===== NOVA SEÇÃO PARA DETALHES E MANUTENÇÃO DO VEÍCULO SELECIONADO ===== -->
+        <!-- =================================================================== -->
+        <section id="maintenance-details-container" class="container" style="display: none;">
+            <h2 id="maintenance-vehicle-title">Detalhes e Manutenção</h2>
+            
+            <div class="maintenance-content">
+                <!-- Coluna para Histórico de Manutenção -->
+                <div class="maintenance-history">
+                    <h3>Histórico de Manutenção</h3>
+                    <ul id="lista-manutencoes">
+                        <!-- Manutenções serão carregadas aqui via JS -->
+                    </ul>
+                </div>
+
+                <!-- Coluna para Adicionar Nova Manutenção -->
+                <div class="maintenance-form-section">
+                    <h3>Adicionar Nova Manutenção</h3>
+                    <form id="form-add-manutencao">
+                        <!-- Campo oculto para armazenar o ID do veículo selecionado -->
+                        <input type="hidden" id="maintenance-veiculo-id" name="veiculoId">
+                        
+                        <label for="maintenance-descricao">Descrição do Serviço:</label>
+                        <input type="text" id="maintenance-descricao" placeholder="Ex: Troca de óleo e filtro" required>
+                        
+                        <label for="maintenance-custo">Custo (R$):</label>
+                        <input type="number" id="maintenance-custo" placeholder="Ex: 350.50" min="0" step="0.01" required>
+                        
+                        <label for="maintenance-km">Quilometragem (Opcional):</label>
+                        <input type="number" id="maintenance-km" placeholder="Ex: 85000" min="0">
+                        
+                        <button type="submit">Salvar Manutenção</button>
+                    </form>
+                    <div id="maintenance-form-message" class="form-message"></div>
+                </div>
             </div>
         </section>
         <hr>
@@ -80,16 +119,6 @@
             </div>
         </section>
         <hr>
-
-        <!-- NOVA SEÇÃO DE SERVIÇOS OFERECIDOS -->
-        <section id="servicos-oferecidos-container" class="container">
-            <h2>Nossos Serviços</h2>
-            <div id="lista-servicos">
-                <p>Carregando serviços...</p>
-            </div>
-        </section>
-        <hr>
-        
         <!-- NOVA SEÇÃO DE DICAS -->
         <section id="dicas-container" class="container">
             <h2>Dicas da Comunidade</h2>
@@ -404,7 +433,7 @@
         </div>
     </div>
     
-    <!-- NOVO: MODAL PARA DIAGNÓSTICO (escondido por padrão) -->
+    <!-- MODAL PARA DIAGNÓSTICO (escondido por padrão) -->
     <div id="diagnosticoModal" class="modal">
         <div class="modal-content">
             <span class="close-button" id="closeDiagnosticoModal">×</span>
@@ -425,7 +454,7 @@
         </div>
     </div>
 
-    <!-- NOVO: MODAL PARA EDIÇÃO DE VEÍCULO (escondido por padrão) -->
+    <!-- MODAL PARA EDIÇÃO DE VEÍCULO (escondido por padrão) -->
     <div id="editVehicleModal" class="modal">
         <div class="modal-content">
             <span class="close-button" id="closeEditModal">×</span>
