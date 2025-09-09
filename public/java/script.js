@@ -13,7 +13,7 @@ async function fetchAndDisplayVehicles() {
     if (!listContainer) return;
 
     try {
-        const response = await fetch('http://localhost:3000/api/veiculos');
+        const response = await fetch('api/veiculos');
         if (!response.ok) {
             throw new Error(`Erro de rede: ${response.statusText}`);
         }
@@ -65,7 +65,7 @@ async function carregarManutencoes(veiculoId) {
     maintenanceList.innerHTML = '<li>Carregando histórico...</li>';
 
     try {
-        const response = await fetch(`http://localhost:3000/api/veiculos/${veiculoId}/manutencoes`);
+        const response = await fetch(`api/veiculos/${veiculoId}/manutencoes`);
         if (!response.ok) {
             throw new Error('Falha ao buscar o histórico de manutenções.');
         }
@@ -108,7 +108,7 @@ async function showMaintenanceForVehicle(veiculoId) {
 
     try {
         // Busca os dados do veículo para exibir o nome no título
-        const response = await fetch(`http://localhost:3000/api/veiculos/${veiculoId}`);
+        const response = await fetch(`api/veiculos/${veiculoId}`);
         if (!response.ok) throw new Error('Não foi possível encontrar o veículo selecionado.');
         const vehicle = await response.json();
         
@@ -138,7 +138,7 @@ async function carregarServicosOferecidos() {
     }
 
     try {
-        const response = await fetch('http://localhost:3000/api/garagem/servicos-oferecidos');
+        const response = await fetch('api/garagem/servicos-oferecidos');
         if (!response.ok) {
             throw new Error(`Erro na API de serviços: ${response.statusText} (Status: ${response.status})`);
         }
@@ -179,7 +179,7 @@ async function carregarViagensPopulares() {
     }
 
     try {
-        const response = await fetch('http://localhost:3000/api/viagens-populares');
+        const response = await fetch('api/viagens-populares');
         if (!response.ok) {
             throw new Error(`Erro na API de viagens: ${response.statusText}`);
         }
@@ -240,7 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             try {
-                const response = await fetch('http://localhost:3000/api/veiculos', {
+                const response = await fetch('api/veiculos', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(novoVeiculo),
@@ -273,7 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const vehicleId = target.dataset.id;
                 if (confirm(`Tem certeza que deseja excluir o veículo com ID: ${vehicleId}?`)) {
                     try {
-                        const response = await fetch(`http://localhost:3000/api/veiculos/${vehicleId}`, {
+                        const response = await fetch(`api/veiculos/${vehicleId}`, {
                             method: 'DELETE'
                         });
 
@@ -300,7 +300,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 errorDiv.textContent = ''; // Limpa erros antigos
 
                 try {
-                    const response = await fetch(`http://localhost:3000/api/veiculos/${vehicleId}`);
+                    const response = await fetch(`api/veiculos/${vehicleId}`);
                     if (!response.ok) throw new Error('Não foi possível carregar os dados do veículo para edição.');
                     
                     const vehicle = await response.json();
@@ -357,7 +357,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             try {
-                const response = await fetch(`http://localhost:3000/api/veiculos/${vehicleId}`, {
+                const response = await fetch(`api/veiculos/${vehicleId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(updatedData)
@@ -401,7 +401,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             try {
-                const response = await fetch(`http://localhost:3000/api/veiculos/${veiculoId}/manutencoes`, {
+                const response = await fetch(`api/veiculos/${veiculoId}/manutencoes`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(dadosFormulario),
@@ -499,7 +499,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const modelo = dicaModeloInput.value.trim();
         if (!modelo) return;
         try {
-            const response = await fetch(`http://localhost:3000/api/dicas/${encodeURIComponent(modelo)}`);
+            const response = await fetch(`api/dicas/${encodeURIComponent(modelo)}`);
             if (response.ok) {
                 abrirModalDica('edit', await response.json());
             } else if (response.status === 404) {
@@ -514,7 +514,7 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
         const modo = document.getElementById('dicaFormModo').value;
         const modelo = document.getElementById('dicaFormModelo').value;
-        const url = `http://localhost:3000/api/dicas${modo === 'edit' ? '/' + encodeURIComponent(modelo) : ''}`;
+        const url = `api/dicas${modo === 'edit' ? '/' + encodeURIComponent(modelo) : ''}`;
         const method = modo === 'edit' ? 'PUT' : 'POST';
         try {
             const response = await fetch(url, {

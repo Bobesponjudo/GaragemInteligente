@@ -885,8 +885,8 @@ class Garagem {
             
             console.log("[Diagnóstico] Carregando serviços e problemas da API...");
             const [servicosRes, problemasRes] = await Promise.all([
-                fetch('http://localhost:3000/api/garagem/servicos-oferecidos'),
-                fetch('http://localhost:3000/api/garagem/diagnostico')
+                fetch('api/garagem/servicos-oferecidos'),
+                fetch('api/garagem/diagnostico')
             ]);
 
             if (!servicosRes.ok || !problemasRes.ok) {
