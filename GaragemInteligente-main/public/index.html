@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Link para CSS -->
+    <title>Garagem Interativa com Manutenção</title> <!-- Título Atualizado -->
+</head>
+
+<body>
+   <header class="site-header">
+        <div class="header-container">
+            <a href="index.html" class="logo">Garagem Interativa</a>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="index.html" id="nav-index">Home</a></li>
+                    <li><a href="carro.html" id="nav-carro">Carro</a></li>
+                    <li><a href="carro-esportivo.html" id="nav-carro-esportivo">Carro Esportivo</a></li>
+                    <li><a href="caminhao.html" id="nav-caminhao">Caminhão</a></li>
+                    <li><a href="moto.html" id="nav-moto">Moto</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <main>
+        <h1>Garagem Interativa</h1> <!-- Título Mantido -->
+        
+        <!-- =================================================================== -->
+        <!-- ============== SEÇÃO PARA VEÍCULOS DO BANCO DE DADOS ============== -->
+        <!-- =================================================================== -->
+        <section id="db-vehicles-container" class="container">
+            <h2>Veículos no Banco de Dados (via API)</h2>
+            
+            <!-- Formulário para Adicionar um Novo Veículo -->
+            <div class="form-db-container">
+                <h3>Adicionar Novo Veículo</h3>
+                <form id="form-add-db-vehicle">
+                    <input type="text" id="db-placa" placeholder="Placa (Ex: ABC1D23)" required>
+                    <input type="text" id="db-marca" placeholder="Marca (Ex: Honda)" required>
+                    <input type="text" id="db-modelo" placeholder="Modelo (Ex: Civic)" required>
+                    <input type="number" id="db-ano" placeholder="Ano (Ex: 2021)" required>
+                    <input type="text" id="db-cor" placeholder="Cor (Ex: Preto)">
+                    <button type="submit">Salvar no DB</button>
+                </form>
+                <div id="db-form-error" class="form-error-message"></div>
+            </div>
+
+            <hr>
+
+            <!-- Lista de Veículos do Banco de Dados -->
+            <h3>Garagem Registrada</h3>
+            <div id="db-vehicle-list">
+                <p>Carregando veículos do banco de dados...</p>
+            </div>
+        </section>
+        <hr>
+        
+        <!-- =================================================================== -->
+        <!-- ===== NOVA SEÇÃO PARA DETALHES E MANUTENÇÃO DO VEÍCULO SELECIONADO ===== -->
+        <!-- =================================================================== -->
+        <section id="maintenance-details-container" class="container" style="display: none;">
+            <h2 id="maintenance-vehicle-title">Detalhes e Manutenção</h2>
+            
+            <div class="maintenance-content">
+                <!-- Coluna para Histórico de Manutenção -->
+                <div class="maintenance-history">
+                    <h3>Histórico de Manutenção</h3>
+                    <ul id="lista-manutencoes">
+                        <!-- Manutenções serão carregadas aqui via JS -->
+                    </ul>
+                </div>
+
+                <!-- Coluna para Adicionar Nova Manutenção -->
+                <div class="maintenance-form-section">
+                    <h3>Adicionar Nova Manutenção</h3>
+                    <form id="form-add-manutencao">
+                        <!-- Campo oculto para armazenar o ID do veículo selecionado -->
+                        <input type="hidden" id="maintenance-veiculo-id" name="veiculoId">
+                        
+                        <label for="maintenance-descricao">Descrição do Serviço:</label>
+                        <input type="text" id="maintenance-descricao" placeholder="Ex: Troca de óleo e filtro" required>
+                        
+                        <label for="maintenance-custo">Custo (R$):</label>
+                        <input type="number" id="maintenance-custo" placeholder="Ex: 350.50" min="0" step="0.01" required>
+                        
+                        <label for="maintenance-km">Quilometragem (Opcional):</label>
+                        <input type="number" id="maintenance-km" placeholder="Ex: 85000" min="0">
+                        
+                        <button type="submit">Salvar Manutenção</button>
+                    </form>
+                    <div id="maintenance-form-message" class="form-message"></div>
+                </div>
+            </div>
+        </section>
+        <hr>
+        <!-- =================================================================== -->
+        <!-- ================== FIM DA NOVA SEÇÃO ============================== -->
+        <!-- =================================================================== -->
+
+        <!-- SEÇÃO PARA O CLIMA -->
+        <section id="weather-container" class="container" style="text-align: center; margin-bottom: 20px;">
+            <h2>Clima Atual</h2>
+            <!-- INPUT E BOTÃO PARA CIDADE -->
+            <div style="margin-bottom: 10px;">
+                <input type="text" id="cityInput" placeholder="Digite o nome da cidade" value="Campinas" style="padding: 8px; border-radius: 4px; border: 1px solid #035f1e;">
+                <button id="searchWeatherBtn" style="padding: 8px 12px; background-color: #4c7aaf; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    Buscar Clima
+                </button>
+            </div>
+            <!-- FIM INPUT E BOTÃO -->
+            <div id="weather-info" style="padding: 10px; background-color: rgb(165, 195, 223); border-radius: 5px;">
+                Carregando informações do clima...
+            </div>
+            <div style="margin-top: 15px; margin-bottom: 10px;">
+                <label for="forecast-days" style="margin-right: 10px;"><strong>Previsão Detalhada:</strong></label>
+                <button class="forecast-days-btn" data-days="1" style="padding: 6px 10px; margin: 0 3px; background-color: #163e79; color: white; border: none; border-radius: 4px; cursor: pointer;">1 Dia</button>
+                <button class="forecast-days-btn" data-days="3" style="padding: 6px 10px; margin: 0 3px; background-color: #163e79; color: white; border: none; border-radius: 4px; cursor: pointer;">3 Dias</button>
+                <button class="forecast-days-btn" data-days="5" style="padding: 6px 10px; margin: 0 3px; background-color: #163e79; color: white; border: none; border-radius: 4px; cursor: pointer;">5 Dias</button>
+            </div>
+            <div id="forecast-info" style="margin-top: 10px; display: flex; flex-wrap: wrap; justify-content: space-around; background-color: #f0fbff; padding:10px; border-radius: 5px; min-height: 150px;">
+                Selecione o número de dias para ver a previsão.
+            </div>
+        </section>
+        <hr>
+
+        <!-- NOVA SEÇÃO DE VIAGENS POPULARES -->
+        <section id="viagens-populares-container" class="container">
+            <h2>Destinos Populares</h2>
+            <div id="lista-viagens">
+                <p>Carregando destinos...</p>
+            </div>
+        </section>
+        <hr>
+        <!-- NOVA SEÇÃO DE DICAS -->
+        <section id="dicas-container" class="container">
+            <h2>Dicas da Comunidade</h2>
+            <p>Procure por um modelo de veículo para ver ou adicionar uma dica de manutenção!</p>
+            <div class="botoes">
+                <input type="text" id="dicaModeloInput" placeholder="Ex: Civic, Actros, Ninja">
+                <button id="buscarDicaBtn">Buscar Dica</button>
+            </div>
+        </section>
+        <hr>
+       
+    </main>
+
+    <!-- MODAL PARA ADICIONAR/EDITAR DICA (escondido por padrão) -->
+    <div id="dicaModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeDicaModal">×</span>
+            <h3 id="dicaModalTitle">Adicionar Dica</h3>
+            <form id="dicaForm">
+                <input type="hidden" id="dicaFormModo"> <!-- 'add' ou 'edit' -->
+                <label for="dicaFormModelo">Modelo do Veículo:</label>
+                <input type="text" id="dicaFormModelo" readonly>
+                
+                <label for="dicaFormTexto">Dica de Manutenção:</label>
+                <textarea id="dicaFormTexto" rows="4" required placeholder="Ex: Trocar o filtro de ar a cada 10.000km"></textarea>
+                
+                <label for="dicaFormAutor">Seu Nome (Opcional):</label>
+                <input type="text" id="dicaFormAutor" placeholder="Anônimo">
+                
+                <button type="submit" id="salvarDicaBtn">Salvar Dica</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- MODAL PARA DIAGNÓSTICO (escondido por padrão) -->
+    <div id="diagnosticoModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeDiagnosticoModal">×</span>
+            <h3 id="diagnosticoModalTitle">Diagnóstico do Veículo</h3>
+            
+            <input type="hidden" id="diagnosticoVeiculoNome"> <!-- Guarda o nome interno do veículo -->
+            
+            <label for="diagnosticoProblemaSelect">Selecione o problema principal:</label>
+            <select id="diagnosticoProblemaSelect" style="width: 100%; padding: 8px; margin-top: 5px;">
+                <option value="">-- Carregando problemas... --</option>
+            </select>
+            
+            <button id="analisarProblemaBtn" style="margin-top: 15px;">Analisar</button>
+    
+            <div id="diagnosticoResultado" style="margin-top: 20px; padding: 15px; background: #f0f8ff; border-radius: 5px; display: none;">
+                <!-- O resultado da análise aparecerá aqui -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PARA EDIÇÃO DE VEÍCULO (escondido por padrão) -->
+    <div id="editVehicleModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeEditModal">×</span>
+            <h3>Editar Veículo</h3>
+            <form id="form-edit-db-vehicle">
+                <!-- Input escondido para guardar o ID do veículo -->
+                <input type="hidden" id="edit-db-id">
+                
+                <label for="edit-db-placa">Placa:</label>
+                <input type="text" id="edit-db-placa" readonly> <!-- Placa não deve ser editável -->
+
+                <label for="edit-db-marca">Marca:</label>
+                <input type="text" id="edit-db-marca" required>
+
+                <label for="edit-db-modelo">Modelo:</label>
+                <input type="text" id="edit-db-modelo" required>
+
+                <label for="edit-db-ano">Ano:</label>
+                <input type="number" id="edit-db-ano" required>
+
+                <label for="edit-db-cor">Cor:</label>
+                <input type="text" id="edit-db-cor">
+
+                <button type="submit">Salvar Alterações</button>
+            </form>
+            <div id="edit-form-error" class="form-error-message"></div>
+        </div>
+    </div>
+
+    <!-- Scripts JS -->
+    <script src="java/manutencao.js"></script>
+    <script src="java/veiculo.js"></script>
+    <script src="java/carro.js"></script>
+    <script src="java/carroEsportivo.js"></script>
+    <script src="java/caminhao.js"></script>
+    <script src="java/moto.js"></script>
+    <script src="java/weatherService.js"></script>
+    <script src="java/simulated.js"></script>
+    <script src="java/garagem.js"></script>
+    <script src="java/script.js"></script>
+</body>
+
+</html>
