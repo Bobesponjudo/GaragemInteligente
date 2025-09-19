@@ -145,25 +145,27 @@ class Carro extends Veiculo {
 
     // --- Métodos de Atualização de UI (Implementação) ---
 
-    atualizarStatus() {
+     atualizarStatus() {
         const prefixoId = this.obterPrefixoIdHtml();
         const statusElem = document.getElementById(`${prefixoId}-status`);
 
-        // IDs dos botões comuns (podem ter sufixo ou não)
-        const ligarBtnId = `ligar${prefixoId === 'carro' ? '' : '-' + prefixoId}-btn`;
-        const desligarBtnId = `desligar${prefixoId === 'carro' ? '' : '-' + prefixoId}-btn`;
-        const acelerarBtnId = `acelerar${prefixoId === 'carro' ? '' : '-' + prefixoId}-btn`;
-        const frearBtnId = `frear${prefixoId === 'carro' ? '' : '-' + prefixoId}-btn`;
-        const pintarBtnId = `pintar${prefixoId === 'carro' ? '' : '-' + prefixoId}-btn`;
-        const abastecerBtnId = `abastecer${prefixoId === 'carro' ? '' : '-' + prefixoId}-btn`;
+        // Helper para construir IDs de botão dinamicamente
+        // O carro base (meuCarro, que tem prefixoId 'carro') tem IDs de botão sem o prefixo 'carro-'
+        // Ex: ligar-btn em vez de ligar-carro-btn
+        // Os outros veículos (carroEsportivo, caminhao, moto) têm o prefixo no ID do botão
+        const getButtonId = (baseName) => {
+            if (prefixoId === 'carro') {
+                return `${baseName}-btn`; // Ex: 'ligar-btn'
+            }
+            return `${baseName}-${prefixoId}-btn`; // Ex: 'ligar-caminhao-btn'
+        };
 
-        // Busca os elementos
-        const ligarBtn = document.getElementById(ligarBtnId);
-        const desligarBtn = document.getElementById(desligarBtnId);
-        const acelerarBtn = document.getElementById(acelerarBtnId);
-        const frearBtn = document.getElementById(frearBtnId);
-        const pintarBtn = document.getElementById(pintarBtnId);
-        const abastecerBtn = document.getElementById(abastecerBtnId);
+        const ligarBtn = document.getElementById(getButtonId('ligar'));
+        const desligarBtn = document.getElementById(getButtonId('desligar'));
+        const acelerarBtn = document.getElementById(getButtonId('acelerar'));
+        const frearBtn = document.getElementById(getButtonId('frear'));
+        const pintarBtn = document.getElementById(getButtonId('pintar'));
+        const abastecerBtn = document.getElementById(getButtonId('abastecer'));
 
         // Atualiza texto e cor do status
         if (statusElem) {
@@ -172,10 +174,10 @@ class Carro extends Veiculo {
         }
 
         // Habilita/Desabilita botões
-        if (ligarBtn) ligarBtn.disabled = this.ligado;
-        if (desligarBtn) desligarBtn.disabled = !this.ligado;
-        if (acelerarBtn) acelerarBtn.disabled = !this.ligado;
-        if (frearBtn) frearBtn.disabled = this.velocidade === 0; // Desabilita só se parado
+        if (ligarBtn) ligarBtn.disabled = this.ligado || this.combustivel <= 0; // Não pode ligar se já ligado ou sem combustível
+        if (desligarBtn) desligarBtn.disabled = !this.ligado; // Só pode desligar se estiver ligado
+        if (acelerarBtn) acelerarBtn.disabled = !this.ligado || this.combustivel <= 0; // Só pode acelerar se ligado e com combustível
+        if (frearBtn) frearBtn.disabled = this.velocidade === 0; // Só pode frear se estiver em movimento
         if (pintarBtn) pintarBtn.disabled = false; // Sempre habilitado
         if (abastecerBtn) abastecerBtn.disabled = false; // Sempre habilitado
     }
