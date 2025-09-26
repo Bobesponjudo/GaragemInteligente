@@ -1,3 +1,5 @@
+// --- START OF FILE carroEsportivo.js ---
+
 class CarroEsportivo extends Carro {
     constructor(modelo, cor) {
         super(modelo, cor);
@@ -73,8 +75,13 @@ class CarroEsportivo extends Carro {
 
     frear(interno = false) { // Freia mais forte
         const prefixoId = this.obterPrefixoIdHtml();
-        const frearBtn = document.getElementById(`frear-${prefixoId}-btn`);
-        if (this.velocidade === 0) { if (frearBtn) frearBtn.disabled = true; return; }
+        // Correção aqui: O ID do botão é 'frear-carroEsportivo-btn'
+        const frearBtn = document.getElementById(`frear-${prefixoId}-btn`); 
+
+        if (this.velocidade === 0) { 
+            if (frearBtn) frearBtn.disabled = true; 
+            return; 
+        }
 
         this.velocidade = Math.max(this.velocidade - 20, 0); // Redução maior
 
@@ -102,6 +109,8 @@ class CarroEsportivo extends Carro {
         const botoesContainer = document.getElementById(`botoes-${prefixoId}`);
         if (!botoesContainer) return;
 
+        // O seletor está correto pois os botões específicos do Esportivo não seguem a convenção do Carro
+        // Eles estão como: <button onclick="garagem.interagirComVeiculo('carroEsportivo', 'ativarTurbo')">
         const turboOnBtn = botoesContainer.querySelector('button[onclick*="ativarTurbo"]');
         const turboOffBtn = botoesContainer.querySelector('button[onclick*="desativarTurbo"]');
 
@@ -128,3 +137,4 @@ class CarroEsportivo extends Carro {
         return `${baseInfo}\nTurbo: ${this.turboAtivado ? 'Ativado' : 'Desativado'}`;
     }
 }
+// --- END OF FILE carroEsportivo.js ---

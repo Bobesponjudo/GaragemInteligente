@@ -1,3 +1,5 @@
+// --- START OF FILE veiculo.js ---
+
 class Veiculo {
     /**
      * Cria uma instância de Veiculo.
@@ -17,13 +19,8 @@ class Veiculo {
     /**
      * Pinta o veículo com uma nova cor.
      * @param {string} novaCor - A nova cor desejada.
-     * @returns {boolean} True se a pintura foi bem-sucedida, false caso contrário.
+     * @returns {boolean} True se a pintura foi bem-sucedida (cor válida), false caso contrário.
      */
-    /**
-* @class Veiculo
-* @description Classe base para todos os veículos da garagem. Contém propriedades
-*              e métodos comuns como pintar, abastecer e gerenciar histórico de manutenção.
-*/
     pintar(novaCor) {
         if (novaCor && typeof novaCor === 'string' && novaCor.trim() !== '') {
             this.cor = novaCor.trim();
@@ -36,11 +33,28 @@ class Veiculo {
             return false;
         }
     }
+
     /**
-       * Pinta o veículo com uma nova cor.
-       * @param {string} novaCor - A nova cor desejada.
-       * @returns {boolean} True se a pintura foi bem-sucedida (cor válida), false caso contrário.
-       */
+     * Abastece o veículo. (Movido do Carro para o Veiculo, sendo mais genérico)
+     * @param {number} quantidade - Percentual de combustível a adicionar.
+     * @returns {boolean} True se abastecido com sucesso, false se quantidade inválida.
+     */
+    abastecer(quantidade) {
+        if (isNaN(quantidade) || quantidade < 0) {
+            alert("Quantidade inválida. Use um número maior ou igual a 0.");
+            return false;
+        }
+        const combustivelAntes = this.combustivel;
+        this.combustivel = Math.min(this.combustivel + quantidade, 100); // Limita a 100%
+        const adicionado = this.combustivel - combustivelAntes;
+
+        alert(`${this.nomeNaGaragem} abastecido com ${adicionado.toFixed(0)}%. Nível atual: ${this.combustivel.toFixed(0)}%`);
+        if (this.atualizarStatus) this.atualizarStatus(); // Habilita/Desabilita botões (ligar, turbo)
+        if (this.atualizarInfoDisplay) this.atualizarInfoDisplay(); // Caso mostre combustível em outro lugar
+        garagem.salvarGaragem(); // Salva novo nível de combustível
+        return true;
+    }
+
     /**
      * Adiciona um registro de manutenção JÁ VALIDADO ao histórico do veículo.
      * @param {Manutencao} manutencao - O objeto Manutencao validado.
@@ -67,7 +81,7 @@ class Veiculo {
      * @returns {string} Informações formatadas.
      */
     exibirInformacoes() {
-        let info = `Modelo: ${this.modelo}\nCor: ${this.cor}\nCombustível: ${this.combustivel}%`;
+        let info = `Modelo: ${this.modelo}\nCor: ${this.cor}\nCombustível: ${this.combustivel.toFixed(0)}%`; // Usa toFixed(0) para o Combustível
 
         // Filtra manutenções concluídas
         const concluidas = this.historicoManutencao.filter(m => m.status === 'concluida');
@@ -124,7 +138,8 @@ class Veiculo {
             case 'moto': return 'moto';
             default:
                 console.error("Nome interno de veículo desconhecido:", this.nomeNaGaragem);
-                return '';
+                // Retorna 'carro' como fallback, pois 'meuCarro' usa IDs sem sufixo
+                return 'carro';
         }
     }
 
@@ -146,3 +161,4 @@ class Veiculo {
         }
     }
 }
+// --- END OF FILE veiculo.js ---

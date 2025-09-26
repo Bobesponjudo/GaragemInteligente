@@ -1,19 +1,15 @@
-// script.js (CORRIGIDO E COMPLETO COM API E CRUD)
+// --- START OF FILE script.js ---
 
-// =============================================================================
-// === FUNÇÕES GLOBAIS DA APLICAÇÃO ============================================
-// =============================================================================
+// A constante BASE_API_URL agora vem de java/config.js
+// Ela precisa ser definida no arquivo config.js e incluída antes deste script no HTML.
 
-/**
- * Busca veículos da API e os exibe na tela, agora com botões de ação.
- */
 async function fetchAndDisplayVehicles() {
     console.log("[API] Buscando veículos do banco de dados...");
     const listContainer = document.getElementById('db-vehicle-list');
     if (!listContainer) return;
 
     try {
-        const response = await fetch('api/veiculos');
+        const response = await fetch(`${BASE_API_URL}/api/veiculos`); // ALTERADO AQUI
         if (!response.ok) {
             throw new Error(`Erro de rede: ${response.statusText}`);
         }
@@ -28,7 +24,7 @@ async function fetchAndDisplayVehicles() {
 
         vehicles.forEach(vehicle => {
             const card = document.createElement('div');
-            card.className = 'db-vehicle-card'; 
+            card.className = 'db-vehicle-card';
             // **ALTERAÇÃO AQUI: Adicionados botões de Editar, Excluir e Manutenções**
             card.innerHTML = `
                 <h4>${vehicle.marca} ${vehicle.modelo} (${vehicle.ano})</h4>
@@ -45,8 +41,7 @@ async function fetchAndDisplayVehicles() {
         });
         console.log("[API] Veículos exibidos com sucesso.");
 
-    } catch (error)
-        {
+    } catch (error) {
         console.error("Erro CRÍTICO ao buscar veículos da API:", error);
         listContainer.innerHTML = '<p class="error-message">Falha ao carregar veículos. Verifique se o servidor está online.</p>';
     }
@@ -65,7 +60,7 @@ async function carregarManutencoes(veiculoId) {
     maintenanceList.innerHTML = '<li>Carregando histórico...</li>';
 
     try {
-        const response = await fetch(`api/veiculos/${veiculoId}/manutencoes`);
+        const response = await fetch(`${BASE_API_URL}/api/veiculos/${veiculoId}/manutencoes`); // ALTERADO AQUI
         if (!response.ok) {
             throw new Error('Falha ao buscar o histórico de manutenções.');
         }
@@ -81,7 +76,7 @@ async function carregarManutencoes(veiculoId) {
             const li = document.createElement('li');
             const dataFormatada = new Date(m.data).toLocaleDateString('pt-BR');
             const custoFormatado = m.custo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-            
+
             li.innerHTML = `
                 <strong>${m.descricaoServico}</strong>
                 <span>Data: ${dataFormatada}</span>
@@ -108,10 +103,10 @@ async function showMaintenanceForVehicle(veiculoId) {
 
     try {
         // Busca os dados do veículo para exibir o nome no título
-        const response = await fetch(`api/veiculos/${veiculoId}`);
+        const response = await fetch(`${BASE_API_URL}/api/veiculos/${veiculoId}`); // ALTERADO AQUI
         if (!response.ok) throw new Error('Não foi possível encontrar o veículo selecionado.');
         const vehicle = await response.json();
-        
+
         title.textContent = `Manutenções para ${vehicle.marca} ${vehicle.modelo} (${vehicle.placa})`;
         hiddenInput.value = veiculoId; // Armazena o ID no formulário
         container.style.display = 'block'; // Mostra a seção
@@ -138,13 +133,13 @@ async function carregarServicosOferecidos() {
     }
 
     try {
-        const response = await fetch('api/garagem/servicos-oferecidos');
+        const response = await fetch(`${BASE_API_URL}/api/garagem/servicos-oferecidos`); // ALTERADO AQUI
         if (!response.ok) {
             throw new Error(`Erro na API de serviços: ${response.statusText} (Status: ${response.status})`);
         }
         const servicos = await response.json();
 
-        listaServicosDiv.innerHTML = ''; 
+        listaServicosDiv.innerHTML = '';
 
         if (servicos.length === 0) {
             listaServicosDiv.innerHTML = '<p>Nenhum serviço oferecido foi encontrado no banco de dados.</p>';
@@ -179,13 +174,13 @@ async function carregarViagensPopulares() {
     }
 
     try {
-        const response = await fetch('api/viagens-populares');
+        const response = await fetch(`${BASE_API_URL}/api/viagens-populares`); // ALTERADO AQUI
         if (!response.ok) {
             throw new Error(`Erro na API de viagens: ${response.statusText}`);
         }
         const viagens = await response.json();
 
-        listaViagensDiv.innerHTML = ''; 
+        listaViagensDiv.innerHTML = '';
 
         if (viagens.length === 0) {
             listaViagensDiv.innerHTML = '<p>Nenhum destino popular encontrado no momento.</p>';
@@ -221,329 +216,329 @@ const garagem = new Garagem();
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('[script.js] DOMContentLoaded. Aplicação iniciada.');
-    
-    // --- LÓGICA DE INTERAÇÃO COM API DE VEÍCULOS (CREATE) ---
-    const dbForm = document.getElementById('form-add-db-vehicle');
-    const dbErrorDiv = document.getElementById('db-form-error');
 
-    if (dbForm) {
-        dbForm.addEventListener('submit', async (event) => {
-            event.preventDefault(); 
-            dbErrorDiv.textContent = ''; 
+    // ... (restante da lógica de eventos, fetch de DB, etc.)
 
-            const novoVeiculo = {
-                placa: document.getElementById('db-placa').value,
-                marca: document.getElementById('db-marca').value,
-                modelo: document.getElementById('db-modelo').value,
-                ano: document.getElementById('db-ano').value,
-                cor: document.getElementById('db-cor').value,
-            };
+    // --- Lógica de inicialização do simulador local (ATUALIZADA) ---
+    // Garante que os veículos do simulador local existam na garagem.
+    // Isso cobre casos onde o localStorage está vazio ou não contém todos os veículos padrão.
 
-            try {
-                const response = await fetch('api/veiculos', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(novoVeiculo),
-                });
-                
-                if (response.ok) {
-                    console.log("[API] Veículo criado com sucesso!");
-                    dbForm.reset(); 
-                    await fetchAndDisplayVehicles(); 
-                } else {
-                    const errorData = await response.json();
-                    console.error("[API] Erro do servidor ao criar veículo:", errorData);
-                    dbErrorDiv.textContent = `Erro: ${errorData.error || 'Falha ao salvar.'}`;
-                }
-            } catch (error) {
-                console.error("Erro CRÍTICO na requisição POST:", error);
-                dbErrorDiv.textContent = "Erro de conexão. Não foi possível contatar o servidor.";
-            }
-        });
+    // Verifica se cada veículo padrão existe e o cria se não existir.
+    // **Importante:** Os argumentos para _criarOuAtualizarVeiculo são os valores padrão que serão usados
+    // SE o veículo não estiver salvo no localStorage. Se já estiver salvo, os valores do localStorage prevalecem.
+    if (!garagem.veiculos['meuCarro']) {
+        garagem._criarOuAtualizarVeiculo('meuCarro', Carro, "Meu Carro Padrão", "Prata");
+    }
+    if (!garagem.veiculos['carroEsportivo']) {
+        garagem._criarOuAtualizarVeiculo('carroEsportivo', CarroEsportivo, "Esportivo Padrão", "Vermelho");
+    }
+    if (!garagem.veiculos['caminhao']) {
+        garagem._criarOuAtualizarVeiculo('caminhao', Caminhao, "Caminhão Padrão", "Azul", [5000]); // Capacidade padrão
+    }
+    if (!garagem.veiculos['moto']) {
+        garagem._criarOuAtualizarVeiculo('moto', Moto, "Moto Padrão", "Verde");
     }
 
-    // --- LÓGICA PARA UPDATE, DELETE E VISUALIZAÇÃO DE MANUTENÇÕES ---
-    const vehicleListContainer = document.getElementById('db-vehicle-list');
-    if(vehicleListContainer) {
-        vehicleListContainer.addEventListener('click', async (event) => {
-            const target = event.target;
-
-            // --- Lógica de EXCLUSÃO ---
-            if (target.classList.contains('btn-delete')) {
-                const vehicleId = target.dataset.id;
-                if (confirm(`Tem certeza que deseja excluir o veículo com ID: ${vehicleId}?`)) {
-                    try {
-                        const response = await fetch(`api/veiculos/${vehicleId}`, {
-                            method: 'DELETE'
-                        });
-
-                        if (response.ok) {
-                            alert('Veículo excluído com sucesso!');
-                            document.getElementById('maintenance-details-container').style.display = 'none'; // Esconde detalhes se o carro for excluído
-                            await fetchAndDisplayVehicles(); // Atualiza a lista
-                        } else {
-                            const errorData = await response.json();
-                            throw new Error(errorData.error || 'Falha ao excluir o veículo.');
-                        }
-                    } catch (error) {
-                        console.error("Erro ao excluir veículo:", error);
-                        alert(`Erro: ${error.message}`);
-                    }
-                }
-            }
-
-            // --- Lógica de EDIÇÃO (abrir modal) ---
-            if (target.classList.contains('btn-edit')) {
-                const vehicleId = target.dataset.id;
-                const modal = document.getElementById('editVehicleModal');
-                const errorDiv = document.getElementById('edit-form-error');
-                errorDiv.textContent = ''; // Limpa erros antigos
-
-                try {
-                    const response = await fetch(`api/veiculos/${vehicleId}`);
-                    if (!response.ok) throw new Error('Não foi possível carregar os dados do veículo para edição.');
-                    
-                    const vehicle = await response.json();
-
-                    document.getElementById('edit-db-id').value = vehicle._id;
-                    document.getElementById('edit-db-placa').value = vehicle.placa;
-                    document.getElementById('edit-db-marca').value = vehicle.marca;
-                    document.getElementById('edit-db-modelo').value = vehicle.modelo;
-                    document.getElementById('edit-db-ano').value = vehicle.ano;
-                    document.getElementById('edit-db-cor').value = vehicle.cor;
-
-                    modal.style.display = 'block';
-
-                } catch (error) {
-                    console.error("Erro ao preparar edição:", error);
-                    alert(`Erro: ${error.message}`);
-                }
-            }
-            
-            // --- Lógica para MOSTRAR MANUTENÇÕES ---
-            if (target.classList.contains('btn-maintenance')) {
-                const vehicleId = target.dataset.id;
-                await showMaintenanceForVehicle(vehicleId);
-            }
-        });
-    }
-
-    // --- LÓGICA: Manipulação do Modal de Edição ---
-    const editModal = document.getElementById('editVehicleModal');
-    const editForm = document.getElementById('form-edit-db-vehicle');
-    const closeEditModalBtn = document.getElementById('closeEditModal');
-
-    if (closeEditModalBtn) {
-        closeEditModalBtn.onclick = () => editModal.style.display = "none";
-    }
-    window.addEventListener('click', (event) => {
-        if (event.target == editModal) {
-            editModal.style.display = "none";
-        }
-    });
-
-    if (editForm) {
-        editForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const errorDiv = document.getElementById('edit-form-error');
-            errorDiv.textContent = '';
-
-            const vehicleId = document.getElementById('edit-db-id').value;
-            const updatedData = {
-                marca: document.getElementById('edit-db-marca').value,
-                modelo: document.getElementById('edit-db-modelo').value,
-                ano: document.getElementById('edit-db-ano').value,
-                cor: document.getElementById('edit-db-cor').value,
-            };
-
-            try {
-                const response = await fetch(`api/veiculos/${vehicleId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(updatedData)
-                });
-
-                if (response.ok) {
-                    alert('Veículo atualizado com sucesso!');
-                    editModal.style.display = 'none';
-                    await fetchAndDisplayVehicles(); // Atualiza a lista
-                } else {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Falha ao atualizar o veículo.');
-                }
-            } catch (error) {
-                console.error("Erro ao salvar alterações:", error);
-                errorDiv.textContent = `Erro: ${error.message}`;
-            }
-        });
-    }
-    
-    // --- NOVA LÓGICA: Formulário de Adicionar Manutenção ---
-    const maintenanceForm = document.getElementById('form-add-manutencao');
-    const maintenanceMessageDiv = document.getElementById('maintenance-form-message');
-
-    if (maintenanceForm) {
-        maintenanceForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            maintenanceMessageDiv.textContent = '';
-            maintenanceMessageDiv.className = 'form-message'; // Reseta classe
-
-            const veiculoId = document.getElementById('maintenance-veiculo-id').value;
-            if (!veiculoId) {
-                alert('Nenhum veículo selecionado!');
-                return;
-            }
-
-            const dadosFormulario = {
-                descricaoServico: document.getElementById('maintenance-descricao').value,
-                custo: parseFloat(document.getElementById('maintenance-custo').value),
-                quilometragem: document.getElementById('maintenance-km').value ? parseInt(document.getElementById('maintenance-km').value, 10) : undefined,
-            };
-
-            try {
-                const response = await fetch(`api/veiculos/${veiculoId}/manutencoes`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(dadosFormulario),
-                });
-
-                if (response.ok) {
-                    maintenanceMessageDiv.textContent = 'Manutenção adicionada com sucesso!';
-                    maintenanceMessageDiv.classList.add('success');
-                    maintenanceForm.reset(); // Limpa o formulário
-                    await carregarManutencoes(veiculoId); // Atualiza a lista
-                } else {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Falha ao salvar a manutenção.');
-                }
-            } catch (error) {
-                console.error('Erro ao adicionar manutenção:', error);
-                maintenanceMessageDiv.textContent = error.message;
-                maintenanceMessageDiv.classList.add('error-message');
-            }
-        });
-    }
-
-
-    // --- CARREGA DADOS DAS APIS ---
-    fetchAndDisplayVehicles(); 
-    carregarViagensPopulares();
-    //carregarServicosOferecidos();
-
-    // --- LÓGICA DO CLIMA ---
-    const cityInput = document.getElementById('cityInput');
-    const searchWeatherBtn = document.getElementById('searchWeatherBtn');
-    const weatherInfoDiv = document.getElementById('weather-info');
-
-    if (searchWeatherBtn && cityInput && weatherInfoDiv) {
-        searchWeatherBtn.addEventListener('click', () => {
-            const cidade = cityInput.value.trim();
-            if (cidade) {
-                weatherInfoDiv.innerHTML = `⏳ Carregando clima para ${cidade}...`;
-                garagem.carregarEExibirClima(cidade);
-                const forecastInfoDiv = document.getElementById('forecast-info');
-                if (forecastInfoDiv) forecastInfoDiv.innerHTML = `Selecione o número de dias para ver a previsão para ${cidade}.`;
-            } else {
-                alert("Por favor, digite o nome de uma cidade.");
-            }
-        });
-        cityInput.addEventListener('keypress', (event) => { if (event.key === 'Enter') searchWeatherBtn.click(); });
-        garagem.carregarEExibirClima(cityInput.value.trim());
-    }
-
-    // --- LÓGICA DA PREVISÃO ---
-    const forecastBtns = document.querySelectorAll('.forecast-days-btn');
-    const forecastInfoDiv = document.getElementById('forecast-info');
-    if (forecastBtns.length > 0 && cityInput && forecastInfoDiv) {
-        forecastBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const cidade = cityInput.value.trim();
-                const numDias = parseInt(btn.getAttribute('data-days'), 10);
-                if (cidade && numDias) {
-                    forecastInfoDiv.innerHTML = `⏳ Carregando previsão de ${numDias} dia(s) para ${cidade}...`;
-                    garagem.carregarEExibirPrevisao(cidade, numDias);
-                } else if (!cidade) {
-                    alert("Por favor, digite o nome de uma cidade para ver a previsão.");
-                    cityInput.focus();
-                }
-            });
-        });
-        setTimeout(() => {
-            const cidadeInicial = cityInput.value.trim();
-            if (cidadeInicial) {
-                forecastInfoDiv.innerHTML = `⏳ Carregando previsão de 3 dia(s) para ${cidadeInicial}...`;
-                garagem.carregarEExibirPrevisao(cidadeInicial, 3);
-            }
-        }, 1000);
-    }
-    
-    // --- LÓGICA PARA DICAS DA COMUNIDADE ---
-    const buscarDicaBtn = document.getElementById('buscarDicaBtn');
-    const dicaModeloInput = document.getElementById('dicaModeloInput');
-    const dicaModal = document.getElementById('dicaModal');
-    const closeDicaModal = document.getElementById('closeDicaModal');
-    const dicaForm = document.getElementById('dicaForm');
-
-    const abrirModalDica = (modo, dados) => {
-        document.getElementById('dicaModalTitle').textContent = modo === 'edit' ? `Editar Dica para ${dados.modelo}` : `Adicionar Dica para ${dados.modelo}`;
-        document.getElementById('dicaFormModo').value = modo;
-        document.getElementById('dicaFormModelo').value = dados.modelo;
-        document.getElementById('dicaFormTexto').value = modo === 'edit' ? dados.dica : '';
-        document.getElementById('dicaFormAutor').value = modo === 'edit' ? dados.autor : '';
-        dicaModal.style.display = 'block';
-    };
-
-    const fecharModalDica = () => { dicaModal.style.display = 'none'; dicaForm.reset(); };
-    
-    buscarDicaBtn.addEventListener('click', async () => {
-        const modelo = dicaModeloInput.value.trim();
-        if (!modelo) return;
-        try {
-            const response = await fetch(`api/dicas/${encodeURIComponent(modelo)}`);
-            if (response.ok) {
-                abrirModalDica('edit', await response.json());
-            } else if (response.status === 404) {
-                if (confirm(`Nenhuma dica encontrada para "${modelo}". Deseja adicionar uma?`)) {
-                    abrirModalDica('add', { modelo: modelo });
-                }
-            } else { throw new Error(`Erro do servidor: ${response.statusText}`); }
-        } catch (error) { console.error("Erro ao buscar dica:", error); }
-    });
-
-    dicaForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const modo = document.getElementById('dicaFormModo').value;
-        const modelo = document.getElementById('dicaFormModelo').value;
-        const url = `api/dicas${modo === 'edit' ? '/' + encodeURIComponent(modelo) : ''}`;
-        const method = modo === 'edit' ? 'PUT' : 'POST';
-        try {
-            const response = await fetch(url, {
-                method: method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    modelo: modelo,
-                    dica: document.getElementById('dicaFormTexto').value,
-                    autor: document.getElementById('dicaFormAutor').value
-                }),
-            });
-            const result = await response.json();
-            if (response.ok) {
-                alert(`Dica ${modo === 'edit' ? 'atualizada' : 'adicionada'} com sucesso!`);
-                fecharModalDica();
-            } else { throw new Error(result.message || "Ocorreu um erro no servidor."); }
-        } catch (error) { alert(`Erro ao salvar: ${error.message}`); }
-    });
-
-    closeDicaModal.addEventListener('click', fecharModalDica);
-    window.addEventListener('click', (event) => { if (event.target === dicaModal) fecharModalDica(); });
-
-    // --- Lógica do simulador local ---
-    if (Object.keys(garagem.veiculos).length === 0) {
-        garagem.criarCarro();
-        garagem.criarMoto();
-        garagem.criarCarroEsportivo();
-        garagem.criarCaminhao();
-    }
+    // Após garantir que todos os veículos padrão existam, atualiza a UI completa
     garagem.atualizarUICompleta();
     garagem.verificarAgendamentosProximos();
 });
+// --- LÓGICA PARA UPDATE, DELETE E VISUALIZAÇÃO DE MANUTENÇÕES ---
+const vehicleListContainer = document.getElementById('db-vehicle-list');
+if (vehicleListContainer) {
+    vehicleListContainer.addEventListener('click', async (event) => {
+        const target = event.target;
+
+        // --- Lógica de EXCLUSÃO ---
+        if (target.classList.contains('btn-delete')) {
+            const vehicleId = target.dataset.id;
+            if (confirm(`Tem certeza que deseja excluir o veículo com ID: ${vehicleId}?`)) {
+                try {
+                    const response = await fetch(`${BASE_API_URL}/api/veiculos/${vehicleId}`, { // ALTERADO AQUI
+                        method: 'DELETE'
+                    });
+
+                    if (response.ok) {
+                        alert('Veículo excluído com sucesso!');
+                        document.getElementById('maintenance-details-container').style.display = 'none'; // Esconde detalhes se o carro for excluído
+                        await fetchAndDisplayVehicles(); // Atualiza a lista
+                    } else {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Falha ao excluir o veículo.');
+                    }
+                } catch (error) {
+                    console.error("Erro ao excluir veículo:", error);
+                    alert(`Erro: ${error.message}`);
+                }
+            }
+        }
+
+        // --- Lógica de EDIÇÃO (abrir modal) ---
+        if (target.classList.contains('btn-edit')) {
+            const vehicleId = target.dataset.id;
+            const modal = document.getElementById('editVehicleModal');
+            const errorDiv = document.getElementById('edit-form-error');
+            errorDiv.textContent = ''; // Limpa erros antigos
+
+            try {
+                const response = await fetch(`${BASE_API_URL}/api/veiculos/${vehicleId}`); // ALTERADO AQUI
+                if (!response.ok) throw new Error('Não foi possível carregar os dados do veículo para edição.');
+
+                const vehicle = await response.json();
+
+                document.getElementById('edit-db-id').value = vehicle._id;
+                document.getElementById('edit-db-placa').value = vehicle.placa;
+                document.getElementById('edit-db-marca').value = vehicle.marca;
+                document.getElementById('edit-db-modelo').value = vehicle.modelo;
+                document.getElementById('edit-db-ano').value = vehicle.ano;
+                document.getElementById('edit-db-cor').value = vehicle.cor;
+
+                modal.style.display = 'block';
+
+            } catch (error) {
+                console.error("Erro ao preparar edição:", error);
+                alert(`Erro: ${error.message}`);
+            }
+        }
+
+        // --- Lógica para MOSTRAR MANUTENÇÕES ---
+        if (target.classList.contains('btn-maintenance')) {
+            const vehicleId = target.dataset.id;
+            await showMaintenanceForVehicle(vehicleId);
+        }
+    });
+}
+
+// --- LÓGICA: Manipulação do Modal de Edição ---
+const editModal = document.getElementById('editVehicleModal');
+const editForm = document.getElementById('form-edit-db-vehicle');
+const closeEditModalBtn = document.getElementById('closeEditModal');
+
+if (closeEditModalBtn) {
+    closeEditModalBtn.onclick = () => editModal.style.display = "none";
+}
+window.addEventListener('click', (event) => {
+    if (event.target == editModal) {
+        editModal.style.display = "none";
+    }
+});
+
+if (editForm) {
+    editForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const errorDiv = document.getElementById('edit-form-error');
+        errorDiv.textContent = '';
+
+        const vehicleId = document.getElementById('edit-db-id').value;
+        const updatedData = {
+            marca: document.getElementById('edit-db-marca').value,
+            modelo: document.getElementById('edit-db-modelo').value,
+            ano: document.getElementById('edit-db-ano').value,
+            cor: document.getElementById('edit-db-cor').value,
+        };
+
+        try {
+            const response = await fetch(`${BASE_API_URL}/api/veiculos/${vehicleId}`, { // ALTERADO AQUI
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedData)
+            });
+
+            if (response.ok) {
+                alert('Veículo atualizado com sucesso!');
+                editModal.style.display = 'none';
+                await fetchAndDisplayVehicles(); // Atualiza a lista
+            } else {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Falha ao atualizar o veículo.');
+            }
+        } catch (error) {
+            console.error("Erro ao salvar alterações:", error);
+            errorDiv.textContent = `Erro: ${error.message}`;
+        }
+    });
+}
+
+// --- NOVA LÓGICA: Formulário de Adicionar Manutenção ---
+const maintenanceForm = document.getElementById('form-add-manutencao');
+const maintenanceMessageDiv = document.getElementById('maintenance-form-message');
+
+if (maintenanceForm) {
+    maintenanceForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        maintenanceMessageDiv.textContent = '';
+        maintenanceMessageDiv.className = 'form-message'; // Reseta classe
+
+        const veiculoId = document.getElementById('maintenance-veiculo-id').value;
+        if (!veiculoId) {
+            alert('Nenhum veículo selecionado!');
+            return;
+        }
+
+        const dadosFormulario = {
+            descricaoServico: document.getElementById('maintenance-descricao').value,
+            custo: parseFloat(document.getElementById('maintenance-custo').value),
+            quilometragem: document.getElementById('maintenance-km').value ? parseInt(document.getElementById('maintenance-km').value, 10) : undefined,
+        };
+
+        try {
+            const response = await fetch(`${BASE_API_URL}/api/veiculos/${veiculoId}/manutencoes`, { // ALTERADO AQUI
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dadosFormulario),
+            });
+
+            if (response.ok) {
+                maintenanceMessageDiv.textContent = 'Manutenção adicionada com sucesso!';
+                maintenanceMessageDiv.classList.add('success');
+                maintenanceForm.reset(); // Limpa o formulário
+                await carregarManutencoes(veiculoId); // Atualiza a lista
+            } else {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Falha ao salvar a manutenção.');
+            }
+        } catch (error) {
+            console.error('Erro ao adicionar manutenção:', error);
+            maintenanceMessageDiv.textContent = error.message;
+            maintenanceMessageDiv.classList.add('error-message');
+        }
+    });
+}
+
+
+// --- CARREGA DADOS DAS APIS ---
+fetchAndDisplayVehicles();
+carregarViagensPopulares();
+//carregarServicosOferecidos();
+
+// --- LÓGICA DO CLIMA ---
+const cityInput = document.getElementById('cityInput');
+const searchWeatherBtn = document.getElementById('searchWeatherBtn');
+const weatherInfoDiv = document.getElementById('weather-info');
+
+if (searchWeatherBtn && cityInput && weatherInfoDiv) {
+    searchWeatherBtn.addEventListener('click', () => {
+        const cidade = cityInput.value.trim();
+        if (cidade) {
+            weatherInfoDiv.innerHTML = `⏳ Carregando clima para ${cidade}...`;
+            garagem.carregarEExibirClima(cidade);
+            const forecastInfoDiv = document.getElementById('forecast-info');
+            if (forecastInfoDiv) forecastInfoDiv.innerHTML = `Selecione o número de dias para ver a previsão para ${cidade}.`;
+        } else {
+            alert("Por favor, digite o nome de uma cidade.");
+        }
+    });
+    cityInput.addEventListener('keypress', (event) => { if (event.key === 'Enter') searchWeatherBtn.click(); });
+    garagem.carregarEExibirClima(cityInput.value.trim());
+}
+
+// --- LÓGICA DA PREVISÃO ---
+const forecastBtns = document.querySelectorAll('.forecast-days-btn');
+const forecastInfoDiv = document.getElementById('forecast-info');
+if (forecastBtns.length > 0 && cityInput && forecastInfoDiv) {
+    forecastBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const cidade = cityInput.value.trim();
+            const numDias = parseInt(btn.getAttribute('data-days'), 10);
+            if (cidade && numDias) {
+                forecastInfoDiv.innerHTML = `⏳ Carregando previsão de ${numDias} dia(s) para ${cidade}...`;
+                garagem.carregarEExibirPrevisao(cidade, numDias);
+            } else if (!cidade) {
+                alert("Por favor, digite o nome de uma cidade.");
+                cityInput.focus();
+            }
+        });
+    });
+    setTimeout(() => {
+        const cidadeInicial = cityInput.value.trim();
+        if (cidadeInicial) {
+            forecastInfoDiv.innerHTML = `⏳ Carregando previsão de 3 dia(s) para ${cidadeInicial}...`;
+            garagem.carregarEExibirPrevisao(cidadeInicial, 3);
+        }
+    }, 1000);
+}
+
+// --- LÓGICA PARA DICAS DA COMUNIDADE ---
+const buscarDicaBtn = document.getElementById('buscarDicaBtn');
+const dicaModeloInput = document.getElementById('dicaModeloInput');
+const dicaModal = document.getElementById('dicaModal');
+const closeDicaModal = document.getElementById('closeDicaModal');
+const dicaForm = document.getElementById('dicaForm');
+
+const abrirModalDica = (modo, dados) => {
+    document.getElementById('dicaModalTitle').textContent = modo === 'edit' ? `Editar Dica para ${dados.modelo}` : `Adicionar Dica para ${dados.modelo}`;
+    document.getElementById('dicaFormModo').value = modo;
+    document.getElementById('dicaFormModelo').value = dados.modelo;
+    document.getElementById('dicaFormTexto').value = modo === 'edit' ? dados.dica : '';
+    document.getElementById('dicaFormAutor').value = modo === 'edit' ? dados.autor : '';
+    dicaModal.style.display = 'block';
+};
+
+const fecharModalDica = () => { dicaModal.style.display = 'none'; dicaForm.reset(); };
+
+buscarDicaBtn.addEventListener('click', async () => {
+    const modelo = dicaModeloInput.value.trim();
+    if (!modelo) return;
+    try {
+        const response = await fetch(`${BASE_API_URL}/api/dicas/${encodeURIComponent(modelo)}`); // ALTERADO AQUI
+        if (response.ok) {
+            abrirModalDica('edit', await response.json());
+        } else if (response.status === 404) {
+            if (confirm(`Nenhuma dica encontrada para "${modelo}". Deseja adicionar uma?`)) {
+                abrirModalDica('add', { modelo: modelo });
+            }
+        } else { throw new Error(`Erro do servidor: ${response.statusText}`); }
+    } catch (error) { console.error("Erro ao buscar dica:", error); }
+});
+
+dicaForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const modo = document.getElementById('dicaFormModo').value;
+    const modelo = document.getElementById('dicaFormModelo').value;
+    const url = `${BASE_API_URL}/api/dicas${modo === 'edit' ? '/' + encodeURIComponent(modelo) : ''}`; // ALTERADO AQUI
+    const method = modo === 'edit' ? 'PUT' : 'POST';
+    try {
+        const response = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                modelo: modelo,
+                dica: document.getElementById('dicaFormTexto').value,
+                autor: document.getElementById('dicaFormAutor').value
+            }),
+        });
+        const result = await response.json();
+        if (response.ok) {
+            alert(`Dica ${modo === 'edit' ? 'atualizada' : 'adicionada'} com sucesso!`);
+            fecharModalDica();
+        } else { throw new Error(result.message || "Ocorreu um erro no servidor."); }
+    } catch (error) { alert(`Erro ao salvar: ${error.message}`); }
+});
+
+closeDicaModal.addEventListener('click', fecharModalDica);
+window.addEventListener('click', (event) => { if (event.target === dicaModal) fecharModalDica(); });
+
+// --- Lógica de inicialização do simulador local (ATUALIZADA) ---
+// Garante que os veículos do simulador local existam na garagem.
+// Isso cobre casos onde o localStorage está vazio ou não contém todos os veículos padrão.
+// Remover o bloco "if (Object.keys(garagem.veiculos).length === 0)" e substituir por checks individuais.
+
+// Verifica se cada veículo padrão existe e o cria se não existir.
+if (!garagem.veiculos['meuCarro']) {
+    garagem._criarOuAtualizarVeiculo('meuCarro', Carro, "Civic", "Branco");
+}
+if (!garagem.veiculos['carroEsportivo']) {
+    garagem._criarOuAtualizarVeiculo('carroEsportivo', CarroEsportivo, "Pagani", "Rosa");
+}
+if (!garagem.veiculos['caminhao']) {
+    garagem._criarOuAtualizarVeiculo('caminhao', Caminhao, "Actros", "Cinza", [5000]);
+}
+if (!garagem.veiculos['moto']) {
+    garagem._criarOuAtualizarVeiculo('moto', Moto, "Ninja", "Preta/Rosa");
+}
+
+// Após garantir que todos os veículos padrão existam, atualiza a UI
+garagem.atualizarUICompleta();
+garagem.verificarAgendamentosProximos();
+
+// --- END OF FILE script.js ---

@@ -1,3 +1,5 @@
+// --- START OF FILE carro.js ---
+
 class Carro extends Veiculo {
     constructor(modelo, cor) {
         super(modelo, cor);
@@ -7,12 +9,7 @@ class Carro extends Veiculo {
     }
 
     // --- Ações Específicas ---
-    /**
-     * @class Carro
-     * @extends Veiculo
-     * @description Representa um carro comum, herdando de Veiculo e adicionando
-     *              funcionalidades como ligar, desligar, acelerar e frear.
-     */
+    
     ligar() {
         if (this.ligado) return;
         if (this.combustivel > 0) {
@@ -88,8 +85,7 @@ class Carro extends Veiculo {
 
     /**
      * Freia o veículo.
-     * @param {boolean} [interno=false] - Flag para indicar se a chamada é interna (ex: desligamento),
-     *                                    para evitar animações ou salvamentos repetidos.
+     * @param {boolean} [interno=false] - Flag para indicar se a chamada é interna.
      */
     frear(interno = false) {
         const prefixoId = this.obterPrefixoIdHtml();
@@ -122,48 +118,28 @@ class Carro extends Veiculo {
         }
     }
 
-    /**
-     * Abastece o veículo.
-     * @param {number} quantidade - Percentual de combustível a adicionar.
-     * @returns {boolean} True se abastecido com sucesso, false se quantidade inválida.
-     */
-    abastecer(quantidade) {
-        if (isNaN(quantidade) || quantidade < 0) {
-            alert("Quantidade inválida. Use um número maior ou igual a 0.");
-            return false;
-        }
-        const combustivelAntes = this.combustivel;
-        this.combustivel = Math.min(this.combustivel + quantidade, 100); // Limita a 100%
-        const adicionado = this.combustivel - combustivelAntes;
-
-        alert(`${this.nomeNaGaragem} abastecido com ${adicionado.toFixed(0)}%. Nível atual: ${this.combustivel.toFixed(0)}%`);
-        this.atualizarStatus(); // Habilita/Desabilita botões (ligar, turbo)
-        this.atualizarInfoDisplay(); // Caso mostre combustível em outro lugar
-        garagem.salvarGaragem(); // Salva novo nível de combustível
-        return true;
-    }
+    // REMOVIDO: abastecer() - Movido para Veiculo
 
     // --- Métodos de Atualização de UI (Implementação) ---
 
-    atualizarStatus() {
+     atualizarStatus() {
         const prefixoId = this.obterPrefixoIdHtml();
         const statusElem = document.getElementById(`${prefixoId}-status`);
 
-        // IDs dos botões comuns (podem ter sufixo ou não)
-        const ligarBtnId = `ligar${prefixoId === 'carro' ? '' : '-' + prefixoId}-btn`;
-        const desligarBtnId = `desligar${prefixoId === 'carro' ? '' : '-' + prefixoId}-btn`;
-        const acelerarBtnId = `acelerar${prefixoId === 'carro' ? '' : '-' + prefixoId}-btn`;
-        const frearBtnId = `frear${prefixoId === 'carro' ? '' : '-' + prefixoId}-btn`;
-        const pintarBtnId = `pintar${prefixoId === 'carro' ? '' : '-' + prefixoId}-btn`;
-        const abastecerBtnId = `abastecer${prefixoId === 'carro' ? '' : '-' + prefixoId}-btn`;
+        // Helper para construir IDs de botão dinamicamente
+        const getButtonId = (baseName) => {
+            if (prefixoId === 'carro') {
+                return `${baseName}-btn`; // Ex: 'ligar-btn'
+            }
+            return `${baseName}-${prefixoId}-btn`; // Ex: 'ligar-caminhao-btn'
+        };
 
-        // Busca os elementos
-        const ligarBtn = document.getElementById(ligarBtnId);
-        const desligarBtn = document.getElementById(desligarBtnId);
-        const acelerarBtn = document.getElementById(acelerarBtnId);
-        const frearBtn = document.getElementById(frearBtnId);
-        const pintarBtn = document.getElementById(pintarBtnId);
-        const abastecerBtn = document.getElementById(abastecerBtnId);
+        const ligarBtn = document.getElementById(getButtonId('ligar'));
+        const desligarBtn = document.getElementById(getButtonId('desligar'));
+        const acelerarBtn = document.getElementById(getButtonId('acelerar'));
+        const frearBtn = document.getElementById(getButtonId('frear'));
+        const pintarBtn = document.getElementById(getButtonId('pintar'));
+        const abastecerBtn = document.getElementById(getButtonId('abastecer'));
 
         // Atualiza texto e cor do status
         if (statusElem) {
@@ -172,10 +148,10 @@ class Carro extends Veiculo {
         }
 
         // Habilita/Desabilita botões
-        if (ligarBtn) ligarBtn.disabled = this.ligado;
-        if (desligarBtn) desligarBtn.disabled = !this.ligado;
-        if (acelerarBtn) acelerarBtn.disabled = !this.ligado;
-        if (frearBtn) frearBtn.disabled = this.velocidade === 0; // Desabilita só se parado
+        if (ligarBtn) ligarBtn.disabled = this.ligado || this.combustivel <= 0; // Não pode ligar se já ligado ou sem combustível
+        if (desligarBtn) desligarBtn.disabled = !this.ligado; // Só pode desligar se estiver ligado
+        if (acelerarBtn) acelerarBtn.disabled = !this.ligado || this.combustivel <= 0; // Só pode acelerar se ligado e com combustível
+        if (frearBtn) frearBtn.disabled = this.velocidade === 0; // Só pode frear se estiver em movimento
         if (pintarBtn) pintarBtn.disabled = false; // Sempre habilitado
         if (abastecerBtn) abastecerBtn.disabled = false; // Sempre habilitado
     }
@@ -219,19 +195,19 @@ class Carro extends Veiculo {
         if (corElem) corElem.textContent = this.cor;
     }
 
-    // atualizarInfoDisplay() é deixado vazio aqui, para ser sobrescrito se necessário.
-
-    // --- Exibição de Informações ---
-
-    /** Sobrescreve exibirInformacoes para adicionar Status e Velocidade */
-    exibirInformacoes() {
-        let baseInfo = super.exibirInformacoes(); // Pega Modelo, Cor, Combustível, Histórico
-        return `${baseInfo}\nStatus: ${this.ligado ? 'Ligado' : 'Desligado'}\nVelocidade: ${this.velocidade.toFixed(0)} km/h`;
+    atualizarInfoDisplay() {
+        // Nada de extra para o carro base
     }
-    /**
+
+    /** 
      * Retorna uma string formatada com as informações do carro,
      * incluindo status e velocidade, além das informações base.
      * @override
      * @returns {string} Informações formatadas do carro.
      */
+    exibirInformacoes() {
+        let baseInfo = super.exibirInformacoes(); // Pega infos do Veiculo
+        return `${baseInfo}\nStatus: ${this.ligado ? 'Ligado' : 'Desligado'}\nVelocidade: ${this.velocidade.toFixed(0)} km/h`;
+    }
 }
+// --- END OF FILE carro.js ---

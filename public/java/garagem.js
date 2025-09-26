@@ -45,7 +45,8 @@ class Garagem {
         for (const nomeVeiculo in this.veiculos) {
             const veiculo = this.veiculos[nomeVeiculo];
             // Monta um objeto simples com os dados do veículo
-            dadosParaSalvar[nomeVeiculo] = {
+            try {
+                dadosParaSalvar[nomeVeiculo] = {
                 tipo: veiculo.constructor.name, // Salva o nome da classe (Carro, Moto, etc.)
                 modelo: veiculo.modelo,
                 cor: veiculo.cor,
@@ -57,8 +58,13 @@ class Garagem {
                 historicoManutencao: veiculo.historicoManutencao.map(this._serializarManutencao),
                 // Adiciona propriedades específicas de cada tipo, se existirem
                 ...(veiculo instanceof CarroEsportivo && { turboAtivado: veiculo.turboAtivado }),
-                ...(veiculo instanceof Caminhao && { capacidadeCarga: veiculo.capacidadeCarga, cargaAtual: veiculo.cargaAtual }),
-            };
+                ...(veiculo instanceof Caminhao && { capacidadeCarga: veiculo.capacidadeCarga, cargaAtual: veiculo.cargaAtual }), };
+                
+            } catch (error) {
+                console.log(`Erro ao serializar veículo "${nomeVeiculo}":`, error);
+            }
+            
+           
         }
         try {
             // Converte o objeto para JSON e salva no localStorage
@@ -226,27 +232,42 @@ class Garagem {
         this.atualizarListaAgendamentos();
     }
 
+   
     /** Preenche os inputs de Modelo/Cor/Capacidade com os dados atuais do veículo. */
     preencherInputsVeiculo(nome, veiculo) {
-        // Determina o sufixo dos IDs dos inputs de criação
-        const suffix = nome === 'meuCarro' ? 'Carro' :
+        // Determina o sufixo dos IDs dos inputs de criação (semelhante ao obterIdHtmlSufixoFormulario, mas para inputs de criação)
+        const suffix = nome === 'meuCarro' ? 'Carro' : // Para inputs como 'modeloCarro', 'corCarro'
             nome === 'carroEsportivo' ? 'Esportivo' :
                 nome === 'caminhao' ? 'Caminhao' :
                     nome === 'moto' ? 'Moto' : null;
-        if (!suffix) return; // Sai se o nome for desconhecido
+
+        if (!suffix) {
+             console.warn(`preencherInputsVeiculo: Sufixo para "${nome}" não encontrado. Pulando preenchimento de inputs.`);
+             return; // Sai se o nome for desconhecido
+        }
 
         const modeloInput = document.getElementById(`modelo${suffix}`);
         const corInput = document.getElementById(`cor${suffix}`);
-
-        // Preenche se o input existe e o valor não é o default "Não definido"
-        if (modeloInput && veiculo.modelo !== "Não definido") modeloInput.value = veiculo.modelo;
-        if (corInput && veiculo.cor !== "Não definida") corInput.value = veiculo.cor;
+        
+        // Sempre preenche com o valor do veículo na garagem ao atualizar a UI completa
+        if (modeloInput) {
+             modeloInput.value = veiculo.modelo;
+        } else {
+            console.warn(`Input 'modelo${suffix}' não encontrado para veículo "${nome}".`);
+        }
+        if (corInput) {
+             corInput.value = veiculo.cor;
+        } else {
+            console.warn(`Input 'cor${suffix}' não encontrado para veículo "${nome}".`);
+        }
 
         // Preenche capacidade específica do caminhão
         if (nome === 'caminhao' && veiculo instanceof Caminhao) {
             const capacidadeInput = document.getElementById('capacidadeCarga');
-            if (capacidadeInput && veiculo.capacidadeCarga) {
+            if (capacidadeInput) {
                 capacidadeInput.value = veiculo.capacidadeCarga;
+            } else {
+                console.warn(`Input 'capacidadeCarga' para caminhão não encontrado.`);
             }
         }
     }
@@ -542,7 +563,7 @@ class Garagem {
     atualizarListaAgendamentos() {
         const listaElement = document.getElementById('listaAgendamentos');
         if (!listaElement) {
-            console.error("Elemento 'listaAgendamentos' não encontrado no HTML.");
+            console.log("Elemento 'listaAgendamentos' não encontrado no HTML.");
             return;
         }
 
@@ -700,7 +721,7 @@ class Garagem {
         console.log(`[Garagem] Solicitando dados do clima para ${cidade}...`);
         const weatherDiv = document.getElementById('weather-info');
         if (!weatherDiv) {
-            console.error("Elemento 'weather-info' não encontrado para exibir o clima.");
+            console.log("Elemento 'weather-info' não encontrado para exibir o clima.");
             return;
         }
 
@@ -873,7 +894,7 @@ class Garagem {
 
     // --- NOVO: Sistema de Diagnóstico ---
 
-    /**
+   /**
      * NOVO: Busca e armazena em cache os problemas e serviços do backend.
      */
     async _carregarDadosDiagnostico() {
@@ -885,8 +906,8 @@ class Garagem {
             
             console.log("[Diagnóstico] Carregando serviços e problemas da API...");
             const [servicosRes, problemasRes] = await Promise.all([
-                fetch('api/garagem/servicos-oferecidos'),
-                fetch('api/garagem/diagnostico')
+                fetch(`${BASE_API_URL}/api/garagem/servicos-oferecidos`), // ALTERADO AQUI
+                fetch(`${BASE_API_URL}/api/garagem/diagnostico`) // ALTERADO AQUI
             ]);
 
             if (!servicosRes.ok || !problemasRes.ok) {

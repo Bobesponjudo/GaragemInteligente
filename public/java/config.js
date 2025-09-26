@@ -1,0 +1,1 @@
+const BASE_API_URL = 'https://garageminteligente-3.onrender.com';

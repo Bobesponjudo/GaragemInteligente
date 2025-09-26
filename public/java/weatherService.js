@@ -1,3 +1,5 @@
+// Removido qualquer definição de BASE_API_URL daqui, pois agora está em java/config.js
+
 /**
  * Busca dados do clima para uma cidade específica chamando o NOSSO BACKEND.
  * @param {string} cidade - O nome da cidade (ex: "Campinas").
@@ -5,7 +7,7 @@
  */
 async function fetchWeatherData(cidade = "Campinas") {
     // Chama a rota /clima SEM o parâmetro 'tipo', para obter o clima atual
-    const backendUrl = `clima?cidade=${encodeURIComponent(cidade)}`;
+    const backendUrl = `${BASE_API_URL}/clima?cidade=${encodeURIComponent(cidade)}`; // ALTERADO AQUI
 
     console.log(`[WeatherService] Chamando backend para CLIMA ATUAL: ${backendUrl}`);
 
@@ -50,7 +52,7 @@ async function fetchWeatherData(cidade = "Campinas") {
  */
 async function fetchForecastData(cidade = "Campinas", numDays = 3) {
     // Chama a rota /clima COM o parâmetro 'tipo=forecast', para obter a previsão
-    const backendUrl = `clima?cidade=${encodeURIComponent(cidade)}&tipo=forecast`;
+    const backendUrl = `${BASE_API_URL}/clima?cidade=${encodeURIComponent(cidade)}&tipo=forecast`; // ALTERADO AQUI
 
     console.log(`[WeatherService] Chamando backend para PREVISÃO: ${backendUrl}`);
 
@@ -101,4 +103,5 @@ async function fetchForecastData(cidade = "Campinas", numDays = 3) {
             cod: 0,
             message: "Falha na comunicação com o servidor para obter previsão. Verifique sua conexão."
         };
-    } }
+    }
+}
